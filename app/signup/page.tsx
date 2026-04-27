@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { signup } from "./actions";
+import GoogleSignInButton from "@/components/GoogleSignInButton";
 
 type Role = "job_seeker" | "employer";
 
@@ -12,21 +13,16 @@ export default function SignupPage() {
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-
     if (!role) {
       setError("Please select a role before continuing.");
       return;
     }
-
     setError(null);
     const formData = new FormData(e.currentTarget);
     formData.set("role", role);
-
     startTransition(async () => {
       const result = await signup(formData);
-      if (result?.error) {
-        setError(result.error);
-      }
+      if (result?.error) setError(result.error);
     });
   }
 
@@ -42,8 +38,11 @@ export default function SignupPage() {
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-6">
-          {/* Role selection */}
+        {/* GOOGLE STUFF */}
+        <GoogleSignInButton />
+
+        <form onSubmit={handleSubmit} noValidate className="mt-6 flex flex-col gap-6">
+          {/* ... existing form fields remain exactly the same */}
           <fieldset>
             <legend className="mb-3 text-sm font-medium text-zinc-700">
               I am a&hellip; <span className="text-red-500">*</span>
