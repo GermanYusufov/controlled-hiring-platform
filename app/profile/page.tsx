@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition, KeyboardEvent } from "react";
-import { saveProfile } from "./actions";
+import { updateApplicantProfile, updateCompanyProfile } from "./actions";
 
 const SUGGESTED_SKILLS = [
   "JavaScript",
@@ -67,7 +67,7 @@ export default function ProfileEditorPage() {
     formData.set("skills", skills.join(","));
 
     startTransition(async () => {
-      const result = await saveProfile(formData);
+      const result = await updateApplicantProfile(formData);
       setState(result ?? {});
     });
   }
