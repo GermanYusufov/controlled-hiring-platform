@@ -17,24 +17,16 @@ async function getAuthenticatedUser(supabase: any) {
 
   if (authError || !user) redirect("/login");
 
+  // Since the SELECT policy is active, this will successfully find the existing row
   const { data: userData, error: userError } = await supabase
     .from("User")
     .select("role")
     .eq("id", user.id)
-    .maybeSingle();
+    .single(); // Changed from maybeSingle() to single() since the row should definitely exist
 
-  if (userError) throw new Error(userError.message);
-
-  if (!userData) {
-    const { error: insertError } = await supabase.from("User").insert({
-      id: user.id,
-      email: user.email,
-      role: "applicant",
-    });
-
-    if (insertError) throw new Error(insertError.message);
-
-    return { user, role: "applicant" };
+  // If there's an error reading the user, throw it so you can see what went wrong
+  if (userError || !userData) {
+    throw new Error("User record not found: " + (userError?.message || "No data"));
   }
 
   return { user, role: userData.role };
@@ -55,14 +47,24 @@ export async function updateApplicantProfile(
   const cookieStore = await cookies();
   const supabase = createClient(cookieStore);
 
-  const { user } = await getAuthenticatedUser(supabase);
+  const { user, role } = await getAuthenticatedUser(supabase);
+  
+  if (role !== 'applicant') return { error: "Unauthorized: You are not registered as an applicant." };
 
-  const name = String(formData.get("name") ?? "").trim();
+  const name = String(formData.get("fullName") ?? "").trim(); // (From your previous fix!)
   const targetRole = String(formData.get("targetRole") ?? "").trim();
   const skills = String(formData.get("skills") ?? "").trim();
   const experience = String(formData.get("experience") ?? "").trim();
-  const education = String(formData.get("education") ?? "").trim();
+  
+  // 1. Grab the three separate education fields
+  const degree = String(formData.get("educationDegree") ?? "").trim();
+  const school = String(formData.get("educationSchool") ?? "").trim();
+  const year = String(formData.get("educationYear") ?? "").trim();
 
+  // 2. Combine them into a single string (e.g. "Bachelor's Degree - University of Edinburgh - 2022")
+  // The filter(Boolean) makes sure we don't include empty dashes if they left a field blank
+  const education = [degree, school, year].filter(Boolean).join(" - ");
+  
   if (!name) return { error: "Name is required." };
 
   await updateUserRole(supabase, user.id, "applicant");
