@@ -4,22 +4,14 @@ import { useState, useTransition } from "react";
 import { signup } from "./actions";
 import GoogleSignInButton from "@/components/GoogleSignInButton";
 
-type Role = "job_seeker" | "employer";
-
 export default function SignupPage() {
-  const [role, setRole] = useState<Role | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (!role) {
-      setError("Please select a role before continuing.");
-      return;
-    }
     setError(null);
     const formData = new FormData(e.currentTarget);
-    formData.set("role", role);
     startTransition(async () => {
       const result = await signup(formData);
       if (result?.error) setError(result.error);
@@ -42,60 +34,6 @@ export default function SignupPage() {
         <GoogleSignInButton />
 
         <form onSubmit={handleSubmit} noValidate className="mt-6 flex flex-col gap-6">
-          {/* ... existing form fields remain exactly the same */}
-          <fieldset>
-            <legend className="mb-3 text-sm font-medium text-zinc-700">
-              I am a&hellip; <span className="text-red-500">*</span>
-            </legend>
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() => setRole("job_seeker")}
-                className={`flex flex-col items-start gap-1 rounded-xl border-2 p-4 text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 ${
-                  role === "job_seeker"
-                    ? "border-zinc-900 bg-zinc-900 text-white"
-                    : "border-zinc-200 bg-white text-zinc-700 hover:border-zinc-400"
-                }`}
-                aria-pressed={role === "job_seeker"}
-              >
-                <span className="text-xl" aria-hidden>
-                  🔍
-                </span>
-                <span className="font-semibold">Job seeker</span>
-                <span
-                  className={`text-xs leading-snug ${
-                    role === "job_seeker" ? "text-zinc-300" : "text-zinc-400"
-                  }`}
-                >
-                  Browse and apply for roles
-                </span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setRole("employer")}
-                className={`flex flex-col items-start gap-1 rounded-xl border-2 p-4 text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 ${
-                  role === "employer"
-                    ? "border-zinc-900 bg-zinc-900 text-white"
-                    : "border-zinc-200 bg-white text-zinc-700 hover:border-zinc-400"
-                }`}
-                aria-pressed={role === "employer"}
-              >
-                <span className="text-xl" aria-hidden>
-                  🏢
-                </span>
-                <span className="font-semibold">Employer</span>
-                <span
-                  className={`text-xs leading-snug ${
-                    role === "employer" ? "text-zinc-300" : "text-zinc-400"
-                  }`}
-                >
-                  Post roles and evaluate candidates
-                </span>
-              </button>
-            </div>
-          </fieldset>
-
           {/* Name */}
           <div className="flex flex-col gap-1">
             <label
