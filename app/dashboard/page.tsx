@@ -142,7 +142,7 @@ export default async function DashboardPage() {
 
   // If they have neither, force them to pick a role
   if (!applicantProfile && !companyProfile) {
-    redirect('/onboarding');
+    redirect('/profile')
   }
   // --- GATEKEEPER END ---
 
