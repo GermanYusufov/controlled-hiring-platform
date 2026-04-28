@@ -5,7 +5,7 @@ import { useState, useTransition } from "react";
 type Role = "applicant" | "employer";
 
 export default function OnboardingPage() {
-    const [role,setRole] = useState<Role | null>(null);
+    const [role, setRole] = useState<Role | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [isPending, startTransition] = useTransition();
     const [companyName, setCompanyName] = useState("");
@@ -28,6 +28,7 @@ export default function OnboardingPage() {
             if (result?.error) setError(result.error);
         });
     }
+
     return (
         <div className="flex min-h-screen items-center justify-center bg-zinc-50 px-4">
             <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-sm">
@@ -39,91 +40,82 @@ export default function OnboardingPage() {
                         Let&apos;s get you started.
                     </h1>
                 </div>
+                
+                {/* 1. Form tag opens here and wraps EVERYTHING */}
                 <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-6">
                     <fieldset>
-                    <legend className="mb-3 text-sm font-medium text-zinc-700">
-                        Are you a...<span className="text-red-500">*</span>
-                    </legend>
+                        <legend className="mb-3 text-sm font-medium text-zinc-700">
+                            Are you a...<span className="text-red-500">*</span>
+                        </legend>
                         <div className="grid grid-cols-2 gap-3">
                             <button 
                                 type="button"
                                 onClick={() => setRole("applicant")}
-                                className = {`flex flex-col items-start gap-1 rounded-xl border-2 p-4 text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 ${
+                                className={`flex flex-col items-start gap-1 rounded-xl border-2 p-4 text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 ${
                                     role === "applicant" 
                                     ? "border-zinc-900 bg-zinc-900 text-white" 
                                     : "border-zinc-200 bg-white text-zinc-700 hover:border-zinc-400"
                                 }`} 
-                            aria-pressed={role === "applicant"}
+                                aria-pressed={role === "applicant"}
                             >
-                            <span className="text-xl" aria-hidden>
-                            🔍
-                            </span>
-                            <span className="text-lg font-semibold">
-                                Applicant
-                            </span>
-                            <span className={`text-xs leading-snug ${
-                            role === "applicant" ? "text-white/90" : "text-zinc-500"
-                            }`}                        
-                            >
-                                Looking for your next opportunity
-                            </span>
+                                <span className="text-xl" aria-hidden>🔍</span>
+                                <span className="text-lg font-semibold">Applicant</span>
+                                <span className={`text-xs leading-snug ${role === "applicant" ? "text-white/90" : "text-zinc-500"}`}>
+                                    Looking for your next opportunity
+                                </span>
                             </button>
 
                             <button 
                                 type="button"
                                 onClick={() => setRole("employer")}
                                 className={`flex flex-col items-start gap-1 rounded-xl border-2 p-4 text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 ${
-                                role === "employer" 
-                                ? "border-zinc-900 bg-zinc-900 text-white" 
-                                : "border-zinc-200 bg-white text-zinc-700 hover:border-zinc-400"
+                                    role === "employer" 
+                                    ? "border-zinc-900 bg-zinc-900 text-white" 
+                                    : "border-zinc-200 bg-white text-zinc-700 hover:border-zinc-400"
                                 }`}
-                            aria-pressed={role === "employer"}
+                                aria-pressed={role === "employer"}
                             >
-                            <span className="text-xl" aria-hidden>
-                            🏢
-                            </span>
-                            <span className="text-lg font-medium">
-                                Employer
-                            </span>
-                            <span className={`text-xs leading-snug ${
-                                role === "employer" ? "text-white/90" : "text-zinc-500"
-                            }`}                        
-                            >
-                                Hiring for your team
-                            </span>
-                        </button>
-                    </div>
+                                <span className="text-xl" aria-hidden>🏢</span>
+                                <span className="text-lg font-medium">Employer</span>
+                                <span className={`text-xs leading-snug ${role === "employer" ? "text-white/90" : "text-zinc-500"}`}>
+                                    Hiring for your team
+                                </span>
+                            </button>
+                        </div>
                     </fieldset>
-                </form>
 
-                {role === "employer" && (
-                    <div className="mt-4">
-                        <label htmlFor="companyName" className="block text-sm font-medium text-zinc-700">
-                            Company Name<span className="text-red-500">*</span>
-                        </label>
-                        <input
-                            type="text"
-                            id="companyName"
-                            name="companyName"
-                            required
-                            className="mt-1 block w-full rounded-md border border-zinc-300 shadow-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900"
-                        />
-                    </div>
-                )}
+                    {role === "employer" && (
+                        <div className="mt-4">
+                            <label htmlFor="companyName" className="block text-sm font-medium text-zinc-700">
+                                Company Name<span className="text-red-500">*</span>
+                            </label>
+                            <input
+                                type="text"
+                                id="companyName"
+                                name="companyName"
+                                required
+                                value={companyName} // 2. Bind the state to the value
+                                onChange={(e) => setCompanyName(e.target.value)} // 3. Update the state on typing
+                                className="mt-1 block w-full rounded-md border border-zinc-300 shadow-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900"
+                            />
+                        </div>
+                    )}
 
-                {error && (
-                    <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
-                        {error}
-                    </p>
-                )}
+                    {error && (
+                        <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
+                            {error}
+                        </p>
+                    )}
 
-                <button
-                    type="submit"
-                    disabled={isPending}
-                    className="mt-6 w-full rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:bg-blue-400 transition-colors"
-                >
-                    {isPending ? "Submitting..." : "Continue"}
-                </button>
+                    <button
+                        type="submit"
+                        disabled={isPending}
+                        className="mt-6 w-full rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:bg-blue-400 transition-colors"
+                    >
+                        {isPending ? "Submitting..." : "Continue"}
+                    </button>
+                </form> 
+                {/* 4. Form tag closes here */}
             </div>
         </div>
     );
