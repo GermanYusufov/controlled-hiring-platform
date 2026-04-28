@@ -7,7 +7,7 @@ CREATE TYPE profile_availability AS ENUM ('available', 'unavailable');
 CREATE TABLE "User" (
     id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
     email VARCHAR(255) UNIQUE NOT NULL,
-    role user_role NOT NULL,
+    role user_role,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
