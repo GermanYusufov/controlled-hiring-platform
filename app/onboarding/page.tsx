@@ -10,15 +10,22 @@ export default async function OnboardingPage() {
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) redirect("/login");
 
-    const { data: profile } = await supabase
-        .from("User")
-        .select("role")
-        .eq("id", user.id)
-        .single();
+    // Check for actual profile existence rather than just the 'role' string
+    const { data: applicantProfile } = await supabase
+        .from('ApplicantProfile')
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
 
-    if (profile?.role) {
-        redirect(profile.role === "employer" ? "/employer/dashboard" : "/dashboard");
-    }
+    const { data: companyProfile } = await supabase
+        .from('CompanyProfile')
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+    // Only redirect if their respective profile data actually exists
+    if (companyProfile) redirect("/employer/dashboard");
+    if (applicantProfile) redirect("/dashboard");
 
     return <OnboardingForm />;
 }
