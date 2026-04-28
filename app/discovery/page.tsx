@@ -25,12 +25,21 @@ export default function DiscoveryPage() {
     return (
         <div className="min-h-screen bg-zinc-50 px-4 py-12">
             <div className="mx-auto max-w-4xl">
-                <h1 className="text-2xl font-bold tracking-tight text-zinc-900">
-                    Job Discovery
-                </h1>
-                <p className="mt-2 text-sm text-zinc-500">
-                    Explore the latest job openings and find your next opportunity.
-                </p>
+                {/* Header with Back Button */}
+                <div className="mb-8">
+                    <a
+                        href="/dashboard"
+                        className="mb-6 inline-flex items-center gap-1 text-sm text-zinc-400 hover:text-zinc-700 transition-colors"
+                    >
+                        ← Back
+                    </a>
+                    <h1 className="text-2xl font-bold tracking-tight text-zinc-900">
+                        Job Discovery
+                    </h1>
+                    <p className="mt-2 text-sm text-zinc-500">
+                        Explore the latest job openings and find your next opportunity.
+                    </p>
+                </div>
 
                 {/* Search input */}
                 <div className="mt-6">
@@ -39,7 +48,7 @@ export default function DiscoveryPage() {
                         placeholder="Search jobs..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full rounded-lg border border-zinc-300 px-4 py-2 focus:border-blue-500 focus:outline-none"
+                        className="w-full rounded-lg border placeholder-zinc-500 text-zinc-500 border-zinc-300 px-4 py-2 focus:border-blue-500 focus:outline-none"
                     />
                 </div>
 
