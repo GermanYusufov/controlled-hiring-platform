@@ -34,7 +34,7 @@ export default function OnboardingPage() {
             <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-sm">
                 <div className="mb-8">
                     <h1 className="text-2xl font-bold text-center text-zinc-900">
-                        Welcome to HireControl!
+                        Welcome to Sachok Job!
                     </h1>
                     <h1 className="mt-2 text-sm text-center text-zinc-500">
                         Let&apos;s get you started.
@@ -45,7 +45,7 @@ export default function OnboardingPage() {
                 <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-6">
                     <fieldset>
                         <legend className="mb-3 text-sm font-medium text-zinc-700">
-                            Are you a...<span className="text-red-500">*</span>
+                            Are you an...<span className="text-red-500">*</span>
                         </legend>
                         <div className="grid grid-cols-2 gap-3">
                             <button 
@@ -61,7 +61,7 @@ export default function OnboardingPage() {
                                 <span className="text-xl" aria-hidden>🔍</span>
                                 <span className="text-lg font-semibold">Applicant</span>
                                 <span className={`text-xs leading-snug ${role === "applicant" ? "text-white/90" : "text-zinc-500"}`}>
-                                    Looking for your next opportunity
+                                    Looking for next opportunity
                                 </span>
                             </button>
 
@@ -76,7 +76,7 @@ export default function OnboardingPage() {
                                 aria-pressed={role === "employer"}
                             >
                                 <span className="text-xl" aria-hidden>🏢</span>
-                                <span className="text-lg font-medium">Employer</span>
+                                <span className="text-lg font-semibold">Employer</span>
                                 <span className={`text-xs leading-snug ${role === "employer" ? "text-white/90" : "text-zinc-500"}`}>
                                     Hiring for your team
                                 </span>
@@ -115,7 +115,6 @@ export default function OnboardingPage() {
                         {isPending ? "Submitting..." : "Continue"}
                     </button>
                 </form> 
-                {/* 4. Form tag closes here */}
             </div>
         </div>
     );
