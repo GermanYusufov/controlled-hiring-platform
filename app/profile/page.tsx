@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useTransition, KeyboardEvent } from "react";
-import { updateApplicantProfile, updateCompanyProfile } from "./actions";
+import { useState, useTransition, KeyboardEvent, Suspense, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
+import { updateApplicantProfile, updateCompanyProfile, getProfileData } from "./actions";
 
 const SUGGESTED_SKILLS = [
   "JavaScript",
@@ -32,11 +33,44 @@ const DEGREE_OPTIONS = [
   "Other",
 ];
 
+// Wrap the main content in Suspense because we use useSearchParams
 export default function ProfileEditorPage() {
+  return (
+    <Suspense fallback={<div className="flex min-h-screen items-center justify-center text-zinc-500">Loading profile...</div>}>
+      <ProfileEditorContent />
+    </Suspense>
+  );
+}
+
+function ProfileEditorContent() {
+  const searchParams = useSearchParams();
+  const urlRole = searchParams.get("role");
+
   const [skills, setSkills] = useState<string[]>([]);
   const [skillInput, setSkillInput] = useState("");
   const [state, setState] = useState<{ error?: string; success?: boolean }>({});
   const [isPending, startTransition] = useTransition();
+
+  // New state to hold the fetched database info
+  const [initialData, setInitialData] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [activeRole, setActiveRole] = useState(urlRole || "applicant");
+
+  // Fetch the data when the component mounts
+  useEffect(() => {
+    getProfileData()
+      .then((res) => {
+        setInitialData(res.profile || {});
+        if (res.role) setActiveRole(res.role);
+        
+        // Load existing skills into the interactive tag array
+        if (res.role === "applicant" && res.profile?.skills) {
+          setSkills(res.profile.skills.split(",").filter(Boolean));
+        }
+        setIsLoading(false);
+      })
+      .catch(() => setIsLoading(false));
+  }, []);
 
   function addSkill(skill: string) {
     const trimmed = skill.trim();
@@ -59,11 +93,10 @@ export default function ProfileEditorPage() {
     }
   }
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  function handleApplicantSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setState({});
     const formData = new FormData(e.currentTarget);
-    // Inject skills as comma-separated string
     formData.set("skills", skills.join(","));
 
     startTransition(async () => {
@@ -71,6 +104,75 @@ export default function ProfileEditorPage() {
       setState(result ?? {});
     });
   }
+
+  function handleEmployerSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setState({});
+    const formData = new FormData(e.currentTarget);
+
+    startTransition(async () => {
+      const result = await updateCompanyProfile(formData);
+      setState(result ?? {});
+    });
+  }
+
+  if (isLoading) {
+    return <div className="flex min-h-screen items-center justify-center text-zinc-500">Loading your profile...</div>;
+  }
+
+  // ── EMPLOYER VIEW ──
+  if (activeRole === "employer") {
+    return (
+      <div className="min-h-screen bg-zinc-50 px-4 py-12">
+        <div className="mx-auto max-w-2xl">
+          <div className="mb-8">
+            <a href="/dashboard" className="mb-6 inline-flex items-center gap-1 text-sm text-zinc-400 hover:text-zinc-700 transition-colors">
+              ← Back
+            </a>
+            <h1 className="text-2xl font-bold tracking-tight text-zinc-900">Company Profile</h1>
+            <p className="mt-1 text-sm text-zinc-500">Tell applicants about your company.</p>
+          </div>
+
+          <form onSubmit={handleEmployerSubmit} noValidate className="flex flex-col gap-8">
+            <section className="rounded-2xl bg-white p-6 shadow-sm">
+              <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-1">
+                  <label htmlFor="companyName" className="text-sm font-medium text-zinc-700">Company Name <span className="text-red-500">*</span></label>
+                  <input id="companyName" name="companyName" type="text" required defaultValue={initialData?.company_name} className="rounded-lg border border-zinc-200 px-3 py-2 text-sm text-zinc-900 focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900" />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label htmlFor="contactEmail" className="text-sm font-medium text-zinc-700">Contact Email <span className="text-red-500">*</span></label>
+                  <input id="contactEmail" name="contactEmail" type="email" required defaultValue={initialData?.contact_email} className="rounded-lg border border-zinc-200 px-3 py-2 text-sm text-zinc-900 focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900" />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label htmlFor="location" className="text-sm font-medium text-zinc-700">Location</label>
+                  <input id="location" name="location" type="text" defaultValue={initialData?.location} className="rounded-lg border border-zinc-200 px-3 py-2 text-sm text-zinc-900 focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900" />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label htmlFor="description" className="text-sm font-medium text-zinc-700">Description</label>
+                  <textarea id="description" name="description" rows={4} defaultValue={initialData?.description} className="rounded-lg border border-zinc-200 px-3 py-2 text-sm text-zinc-900 focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900" />
+                </div>
+              </div>
+            </section>
+
+            {state.error && <p className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">{state.error}</p>}
+            {state.success && <p className="rounded-lg bg-green-50 px-4 py-3 text-sm text-green-700">Profile saved successfully.</p>}
+
+            <div className="flex justify-end">
+              <button type="submit" disabled={isPending} className="rounded-lg bg-zinc-900 px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-zinc-700 disabled:opacity-50">
+                {isPending ? "Saving…" : "Save profile"}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
+  // ── APPLICANT VIEW ──
+
+  // Break the education string back into its 3 separate parts for the inputs
+  const edParts = initialData?.education ? initialData.education.split(" - ") : [];
 
   return (
     <div className="min-h-screen bg-zinc-50 px-4 py-12">
@@ -91,7 +193,7 @@ export default function ProfileEditorPage() {
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-8">
+        <form onSubmit={handleApplicantSubmit} noValidate className="flex flex-col gap-8">
           {/* ── Personal details ── */}
           <section className="rounded-2xl bg-white p-6 shadow-sm">
             <h2 className="mb-4 text-base font-semibold text-zinc-900">
@@ -111,6 +213,7 @@ export default function ProfileEditorPage() {
                   type="text"
                   autoComplete="name"
                   required
+                  defaultValue={initialData?.name}
                   placeholder="Jane Smith"
                   className="rounded-lg border border-zinc-200 px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
                 />
@@ -128,6 +231,7 @@ export default function ProfileEditorPage() {
                   name="targetRole"
                   type="text"
                   required
+                  defaultValue={initialData?.target_role}
                   placeholder="e.g. Senior Frontend Engineer"
                   className="rounded-lg border border-zinc-200 px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
                 />
@@ -211,7 +315,7 @@ export default function ProfileEditorPage() {
                 <select
                   id="educationDegree"
                   name="educationDegree"
-                  defaultValue=""
+                  defaultValue={edParts[0] || ""}
                   className="rounded-lg border border-zinc-200 px-3 py-2 text-sm text-zinc-900 focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
                 >
                   <option value="" disabled>
@@ -236,6 +340,7 @@ export default function ProfileEditorPage() {
                   id="educationSchool"
                   name="educationSchool"
                   type="text"
+                  defaultValue={edParts[1] || ""}
                   placeholder="e.g. University of Edinburgh"
                   className="rounded-lg border border-zinc-200 px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
                 />
@@ -254,6 +359,7 @@ export default function ProfileEditorPage() {
                   type="number"
                   min={1950}
                   max={2030}
+                  defaultValue={edParts[2] || ""}
                   placeholder="e.g. 2022"
                   className="w-32 rounded-lg border border-zinc-200 px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
                 />

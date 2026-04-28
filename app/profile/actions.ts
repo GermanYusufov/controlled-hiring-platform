@@ -41,60 +41,64 @@ async function updateUserRole(supabase: any, userId: string, role: "applicant" |
   if (error) throw new Error(error.message);
 }
 
-export async function updateApplicantProfile(
-  formData: FormData
-): Promise<ProfileFormState> {
+export async function updateApplicantProfile(formData: FormData): Promise<ProfileFormState> {
   const cookieStore = await cookies();
   const supabase = createClient(cookieStore);
-
   const { user, role } = await getAuthenticatedUser(supabase);
-  
-  if (role !== 'applicant') return { error: "Unauthorized: You are not registered as an applicant." };
+  if (role !== 'applicant') return { error: "Unauthorized." };
 
-  const name = String(formData.get("fullName") ?? "").trim(); // (From your previous fix!)
+  const name = String(formData.get("fullName") ?? "").trim();
   const targetRole = String(formData.get("targetRole") ?? "").trim();
   const skills = String(formData.get("skills") ?? "").trim();
-  const experience = String(formData.get("experience") ?? "").trim();
   
-  // 1. Grab the three separate education fields
   const degree = String(formData.get("educationDegree") ?? "").trim();
   const school = String(formData.get("educationSchool") ?? "").trim();
   const year = String(formData.get("educationYear") ?? "").trim();
-
-  // 2. Combine them into a single string (e.g. "Bachelor's Degree - University of Edinburgh - 2022")
-  // The filter(Boolean) makes sure we don't include empty dashes if they left a field blank
   const education = [degree, school, year].filter(Boolean).join(" - ");
   
   if (!name) return { error: "Name is required." };
 
-  await updateUserRole(supabase, user.id, "applicant");
+  // 1. Fetch the existing profile (select all columns instead of just id)
+  const { data: existingProfile } = await supabase
+    .from("ApplicantProfile")
+    .select("*")
+    .eq("user_id", user.id)
+    .maybeSingle();
 
   const payload = {
     user_id: user.id,
-    name,
+    name: name,
     target_role: targetRole,
-    skills,
-    experience_summary: experience,
-    education,
-    availability_status: "available",
+    skills: skills,
+    education: education
   };
 
-  const { error } = await supabase
-    .from("ApplicantProfile")
-    .upsert(payload, { onConflict: "user_id" });
-
-  if (error) return { error: error.message };
+  if (existingProfile) {
+    // 2. The Memory Check: If nothing changed, skip the database update entirely
+    if (
+      existingProfile.name === payload.name &&
+      existingProfile.target_role === payload.target_role &&
+      existingProfile.skills === payload.skills &&
+      existingProfile.education === payload.education
+    ) {
+      return { success: true }; 
+    }
+    
+    const { error } = await supabase.from("ApplicantProfile").update(payload).eq("id", existingProfile.id);
+    if (error) return { error: error.message };
+  } else {
+    const { error } = await supabase.from("ApplicantProfile").insert(payload);
+    if (error) return { error: error.message };
+  }
 
   return { success: true };
 }
 
-export async function updateCompanyProfile(
-  formData: FormData
-): Promise<ProfileFormState> {
+export async function updateCompanyProfile(formData: FormData): Promise<ProfileFormState> {
   const cookieStore = await cookies();
   const supabase = createClient(cookieStore);
-
-  const { user } = await getAuthenticatedUser(supabase);
+  const { user, role } = await getAuthenticatedUser(supabase);
+  if (role !== 'employer') return { error: "Unauthorized." };
 
   const companyName = String(formData.get("companyName") ?? "").trim();
   const description = String(formData.get("description") ?? "").trim();
@@ -104,21 +108,53 @@ export async function updateCompanyProfile(
   if (!companyName) return { error: "Company name is required." };
   if (!contactEmail) return { error: "Contact email is required." };
 
-  await updateUserRole(supabase, user.id, "employer");
+  const { data: existingProfile } = await supabase
+    .from("CompanyProfile")
+    .select("*")
+    .eq("user_id", user.id)
+    .maybeSingle();
 
   const payload = {
     user_id: user.id,
     company_name: companyName,
-    description,
-    location,
-    contact_email: contactEmail,
+    description: description,
+    location: location,
+    contact_email: contactEmail
   };
 
-  const { error } = await supabase
-    .from("CompanyProfile")
-    .upsert(payload, { onConflict: "user_id" });
-
-  if (error) return { error: error.message };
+  if (existingProfile) {
+    // The Memory Check
+    if (
+      existingProfile.company_name === payload.company_name &&
+      existingProfile.description === payload.description &&
+      existingProfile.location === payload.location &&
+      existingProfile.contact_email === payload.contact_email
+    ) {
+      return { success: true };
+    }
+    
+    const { error } = await supabase.from("CompanyProfile").update(payload).eq("id", existingProfile.id);
+    if (error) return { error: error.message };
+  } else {
+    const { error } = await supabase.from("CompanyProfile").insert(payload);
+    if (error) return { error: error.message };
+  }
 
   return { success: true };
+}
+
+export async function getProfileData() {
+  const cookieStore = await cookies();
+  const supabase = createClient(cookieStore);
+
+  const { user, role } = await getAuthenticatedUser(supabase);
+
+  if (role === "employer") {
+    // maybeSingle() is used instead of single() so it doesn't crash if they are a new user
+    const { data } = await supabase.from("CompanyProfile").select("*").eq("user_id", user.id).maybeSingle();
+    return { profile: data, role };
+  } else {
+    const { data } = await supabase.from("ApplicantProfile").select("*").eq("user_id", user.id).maybeSingle();
+    return { profile: data, role };
+  }
 }
