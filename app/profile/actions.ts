@@ -10,66 +10,89 @@ export type ProfileFormState = {
 };
 
 async function getAuthenticatedUser(supabase: any) {
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+
   if (authError || !user) redirect("/login");
 
   const { data: userData, error: userError } = await supabase
     .from("User")
     .select("role")
     .eq("id", user.id)
-    .single();
+    .maybeSingle();
 
-  if (userError || !userData) throw new Error("User record not found");
-  
+  if (userError) throw new Error(userError.message);
+
+  if (!userData) {
+    const { error: insertError } = await supabase.from("User").insert({
+      id: user.id,
+      email: user.email,
+      role: "applicant",
+    });
+
+    if (insertError) throw new Error(insertError.message);
+
+    return { user, role: "applicant" };
+  }
+
   return { user, role: userData.role };
 }
 
-export async function updateApplicantProfile(formData: FormData): Promise<ProfileFormState> {
+async function updateUserRole(supabase: any, userId: string, role: "applicant" | "employer") {
+  const { error } = await supabase
+    .from("User")
+    .update({ role })
+    .eq("id", userId);
+
+  if (error) throw new Error(error.message);
+}
+
+export async function updateApplicantProfile(
+  formData: FormData
+): Promise<ProfileFormState> {
   const cookieStore = await cookies();
   const supabase = createClient(cookieStore);
 
-  const { user, role } = await getAuthenticatedUser(supabase);
-  
-  if (role !== 'applicant') return { error: "Unauthorized: You are not registered as an applicant." };
+  const { user } = await getAuthenticatedUser(supabase);
 
   const name = String(formData.get("name") ?? "").trim();
   const targetRole = String(formData.get("targetRole") ?? "").trim();
   const skills = String(formData.get("skills") ?? "").trim();
   const experience = String(formData.get("experience") ?? "").trim();
   const education = String(formData.get("education") ?? "").trim();
-  
+
   if (!name) return { error: "Name is required." };
 
-  const { data: existingProfile } = await supabase
-    .from("ApplicantProfile")
-    .select("id")
-    .eq("user_id", user.id)
-    .single();
+  await updateUserRole(supabase, user.id, "applicant");
 
   const payload = {
     user_id: user.id,
-    name: name,
+    name,
     target_role: targetRole,
-    skills: skills,
+    skills,
     experience_summary: experience,
-    education: education
+    education,
+    availability_status: "available",
   };
 
-  const { error } = existingProfile 
-    ? await supabase.from("ApplicantProfile").update(payload).eq("id", existingProfile.id)
-    : await supabase.from("ApplicantProfile").insert(payload);
+  const { error } = await supabase
+    .from("ApplicantProfile")
+    .upsert(payload, { onConflict: "user_id" });
 
   if (error) return { error: error.message };
+
   return { success: true };
 }
 
-export async function updateCompanyProfile(formData: FormData): Promise<ProfileFormState> {
+export async function updateCompanyProfile(
+  formData: FormData
+): Promise<ProfileFormState> {
   const cookieStore = await cookies();
   const supabase = createClient(cookieStore);
 
-  const { user, role } = await getAuthenticatedUser(supabase);
-  
-  if (role !== 'employer') return { error: "Unauthorized: You are not registered as an employer." };
+  const { user } = await getAuthenticatedUser(supabase);
 
   const companyName = String(formData.get("companyName") ?? "").trim();
   const description = String(formData.get("description") ?? "").trim();
@@ -79,24 +102,21 @@ export async function updateCompanyProfile(formData: FormData): Promise<ProfileF
   if (!companyName) return { error: "Company name is required." };
   if (!contactEmail) return { error: "Contact email is required." };
 
-  const { data: existingProfile } = await supabase
-    .from("CompanyProfile")
-    .select("id")
-    .eq("user_id", user.id)
-    .single();
+  await updateUserRole(supabase, user.id, "employer");
 
   const payload = {
     user_id: user.id,
     company_name: companyName,
-    description: description,
-    location: location,
-    contact_email: contactEmail
+    description,
+    location,
+    contact_email: contactEmail,
   };
 
-  const { error } = existingProfile 
-    ? await supabase.from("CompanyProfile").update(payload).eq("id", existingProfile.id)
-    : await supabase.from("CompanyProfile").insert(payload);
+  const { error } = await supabase
+    .from("CompanyProfile")
+    .upsert(payload, { onConflict: "user_id" });
 
   if (error) return { error: error.message };
+
   return { success: true };
 }
