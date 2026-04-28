@@ -78,7 +78,7 @@ export default function ProfileEditorPage() {
         {/* Header */}
         <div className="mb-8">
           <a
-            href="/"
+            href="/dashboard"
             className="mb-6 inline-flex items-center gap-1 text-sm text-zinc-400 hover:text-zinc-700 transition-colors"
           >
             ← Back
