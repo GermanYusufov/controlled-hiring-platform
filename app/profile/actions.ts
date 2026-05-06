@@ -17,28 +17,17 @@ async function getAuthenticatedUser(supabase: any) {
 
   if (authError || !user) redirect("/login");
 
-  // Since the SELECT policy is active, this will successfully find the existing row
   const { data: userData, error: userError } = await supabase
     .from("User")
     .select("role")
     .eq("id", user.id)
-    .single(); // Changed from maybeSingle() to single() since the row should definitely exist
+    .single();
 
-  // If there's an error reading the user, throw it so you can see what went wrong
   if (userError || !userData) {
     throw new Error("User record not found: " + (userError?.message || "No data"));
   }
 
   return { user, role: userData.role };
-}
-
-async function updateUserRole(supabase: any, userId: string, role: "applicant" | "employer") {
-  const { error } = await supabase
-    .from("User")
-    .update({ role })
-    .eq("id", userId);
-
-  if (error) throw new Error(error.message);
 }
 
 export async function updateApplicantProfile(formData: FormData): Promise<ProfileFormState> {
@@ -49,46 +38,69 @@ export async function updateApplicantProfile(formData: FormData): Promise<Profil
 
   const name = String(formData.get("fullName") ?? "").trim();
   const targetRole = String(formData.get("targetRole") ?? "").trim();
-  const skills = String(formData.get("skills") ?? "").trim();
-  
-  const degree = String(formData.get("educationDegree") ?? "").trim();
-  const school = String(formData.get("educationSchool") ?? "").trim();
-  const year = String(formData.get("educationYear") ?? "").trim();
-  const education = [degree, school, year].filter(Boolean).join(" - ");
   
   if (!name) return { error: "Name is required." };
 
-  // 1. Fetch the existing profile (select all columns instead of just id)
-  const { data: existingProfile } = await supabase
+  // 1. Upsert the base ApplicantProfile
+  const { data: applicantProfile, error: profileError } = await supabase
     .from("ApplicantProfile")
-    .select("*")
-    .eq("user_id", user.id)
-    .maybeSingle();
+    .upsert({
+      user_id: user.id,
+      name: name,
+      target_role: targetRole,
+    }, { onConflict: 'user_id' })
+    .select('id')
+    .single();
 
-  const payload = {
-    user_id: user.id,
-    name: name,
-    target_role: targetRole,
-    skills: skills,
-    education: education
-  };
+  if (profileError) return { error: `Profile Error: ${profileError.message}` };
+  const applicantId = applicantProfile.id;
 
-  if (existingProfile) {
-    // 2. The Memory Check: If nothing changed, skip the database update entirely
-    if (
-      existingProfile.name === payload.name &&
-      existingProfile.target_role === payload.target_role &&
-      existingProfile.skills === payload.skills &&
-      existingProfile.education === payload.education
-    ) {
-      return { success: true }; 
+  // 2. Handle Education
+  const degree = String(formData.get("educationDegree") ?? "").trim();
+  const school = String(formData.get("educationSchool") ?? "").trim();
+  const year = String(formData.get("educationYear") ?? "").trim();
+
+  const { error: edDelError } = await supabase.from("ApplicantEducation").delete().eq("applicant_id", applicantId);
+  if (edDelError) return { error: `Ed Delete Error: ${edDelError.message}` };
+  
+  if (degree || school || year) {
+    const { error: edInsError } = await supabase.from("ApplicantEducation").insert({
+      applicant_id: applicantId,
+      institution: school || 'Not Specified',
+      degree: degree || null,
+      end_date: year ? `${year}-01-01` : null
+    });
+    if (edInsError) return { error: `Ed Insert Error: ${edInsError.message}` };
+  }
+
+  // 3. Handle Skills
+  const skillsStr = String(formData.get("skills") ?? "").trim();
+  
+  // FIX: Use a Set to automatically strip out any duplicate tags the user typed!
+  const skillsList = Array.from(new Set(skillsStr ? skillsStr.split(",").map(s => s.trim()).filter(Boolean) : []));
+
+  const { error: skillDelError } = await supabase.from("ApplicantSkill").delete().eq("applicant_id", applicantId);
+  if (skillDelError) return { error: `Skill Delete Error: ${skillDelError.message}` };
+
+  for (const skillName of skillsList) {
+    // Upsert the skill
+    const { data: skillRow, error: skillError } = await supabase
+      .from("Skill")
+      .upsert({ name: skillName }, { onConflict: 'name' })
+      .select('id')
+      .single();
+
+    // FIX: Catch and display the exact database error if one happens
+    if (skillError) return { error: `Skill Error [${skillName}]: ${skillError.message}` };
+
+    // Link it to the applicant
+    if (skillRow) {
+      const { error: linkError } = await supabase.from("ApplicantSkill").insert({
+        applicant_id: applicantId,
+        skill_id: skillRow.id
+      });
+      if (linkError) return { error: `Skill Link Error: ${linkError.message}` };
     }
-    
-    const { error } = await supabase.from("ApplicantProfile").update(payload).eq("id", existingProfile.id);
-    if (error) return { error: error.message };
-  } else {
-    const { error } = await supabase.from("ApplicantProfile").insert(payload);
-    if (error) return { error: error.message };
   }
 
   return { success: true };
@@ -108,37 +120,17 @@ export async function updateCompanyProfile(formData: FormData): Promise<ProfileF
   if (!companyName) return { error: "Company name is required." };
   if (!contactEmail) return { error: "Contact email is required." };
 
-  const { data: existingProfile } = await supabase
+  const { error } = await supabase
     .from("CompanyProfile")
-    .select("*")
-    .eq("user_id", user.id)
-    .maybeSingle();
+    .upsert({
+      user_id: user.id,
+      company_name: companyName,
+      description: description,
+      location: location,
+      contact_email: contactEmail
+    }, { onConflict: 'user_id' });
 
-  const payload = {
-    user_id: user.id,
-    company_name: companyName,
-    description: description,
-    location: location,
-    contact_email: contactEmail
-  };
-
-  if (existingProfile) {
-    // The Memory Check
-    if (
-      existingProfile.company_name === payload.company_name &&
-      existingProfile.description === payload.description &&
-      existingProfile.location === payload.location &&
-      existingProfile.contact_email === payload.contact_email
-    ) {
-      return { success: true };
-    }
-    
-    const { error } = await supabase.from("CompanyProfile").update(payload).eq("id", existingProfile.id);
-    if (error) return { error: error.message };
-  } else {
-    const { error } = await supabase.from("CompanyProfile").insert(payload);
-    if (error) return { error: error.message };
-  }
+  if (error) return { error: error.message };
 
   return { success: true };
 }
@@ -150,11 +142,30 @@ export async function getProfileData() {
   const { user, role } = await getAuthenticatedUser(supabase);
 
   if (role === "employer") {
-    // maybeSingle() is used instead of single() so it doesn't crash if they are a new user
     const { data } = await supabase.from("CompanyProfile").select("*").eq("user_id", user.id).maybeSingle();
     return { profile: data, role };
   } else {
-    const { data } = await supabase.from("ApplicantProfile").select("*").eq("user_id", user.id).maybeSingle();
+    const { data } = await supabase
+      .from("ApplicantProfile")
+      .select(`
+        *,
+        ApplicantEducation ( degree, institution, end_date ),
+        ApplicantSkill ( Skill ( name ) )
+      `)
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (data) {
+      const skillsArr = data.ApplicantSkill?.map((sk: any) => sk.Skill?.name).filter(Boolean) || [];
+      data.skills = skillsArr.join(",");
+
+      const ed = data.ApplicantEducation?.[0];
+      if (ed) {
+        const year = ed.end_date ? ed.end_date.split('-')[0] : "";
+        data.education = [ed.degree, ed.institution, year].filter(Boolean).join(" - ");
+      }
+    }
+
     return { profile: data, role };
   }
 }
