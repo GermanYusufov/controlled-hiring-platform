@@ -242,6 +242,30 @@ export default function ProfileEditorPage() {
               </p>
             )}
 
+          <section className="rounded-2xl bg-white p-6 shadow-sm">
+            <h2 className="mb-4 text-base font-semibold text-zinc-900">
+              Resume
+            </h2>
+
+            <div className="flex flex-col gap-4">
+              <input
+                type="file"
+                name="resume"
+                accept=".pdf"
+                required
+                className="rounded-lg border border-zinc-200 px-3 py-2 text-sm"
+              />
+
+              <button
+                type="button"
+                className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white"
+              >
+                Upload Resume
+              </button>
+
+            </div>
+          </section>
+
             <div className="flex justify-end">
               <button
                 type="submit"
@@ -253,28 +277,6 @@ export default function ProfileEditorPage() {
             </div>
           </form>
 
-          <section className="rounded-2xl bg-white p-6 shadow-sm">
-            <h2 className="mb-4 text-base font-semibold text-zinc-900">
-              Resume
-            </h2>
-
-            <form action={uploadResume} className="flex flex-col gap-4">
-              <input
-                type="file"
-                name="resume"
-                accept=".pdf"
-                required
-                className="rounded-lg border border-zinc-200 px-3 py-2 text-sm"
-              />
-
-              <button
-                type="submit"
-                className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white"
-              >
-                Upload Resume
-              </button>
-            </form>
-          </section>
         </div>
       </div>
     </div>
