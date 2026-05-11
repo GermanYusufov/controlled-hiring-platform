@@ -256,11 +256,29 @@ function ProfileEditorContent() {
             <h2 className="mb-4 text-base font-semibold text-zinc-900">Resume</h2>
 
             <div className="flex flex-col gap-4">
-              <input type="file" name="resume" accept=".pdf" className="rounded-lg border border-zinc-200 px-3 py-2 text-sm" />
-
-              <button type="button" className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white">
-                Upload Resume
-              </button>
+              <input
+                type="file"
+                name="resume"
+                accept=".pdf"
+                className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-500 file:mr-4 file:cursor-pointer file:rounded-md file:border-0 file:bg-zinc-900 file:px-4 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-zinc-700"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    if (file.type !== "application/pdf") {
+                      setState({ error: "Please select a valid PDF file." });
+                      e.target.value = "";
+                    } else if (file.size > 5 * 1024 * 1024) {
+                      setState({ error: "File exceeds 5MB limit." });
+                      e.target.value = "";
+                    } else {
+                      setState({});
+                    }
+                  }
+                }}
+              />
+              <p className="text-xs text-zinc-500">
+                Select a PDF file (Max 5MB). It will be uploaded when you save your profile.
+              </p>
             </div>
           </section>
 
