@@ -62,7 +62,50 @@ export default function EmployerJobsPage() {
                         </p>
                     </div>
                 </div>
+{/* Hiring Pipeline */}
+<div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+  <div className="rounded-md bg-white p-3 shadow-sm text-center">
+    <p className="text-xs text-zinc-500">Submitted</p>
+    <p className="text-xl font-bold">
+      {MOCK_JOBS.reduce((sum, j) => sum + j.candidates.filter(c => c.status === "submitted").length, 0)}
+    </p>
+  </div>
 
+  <div className="rounded-md bg-white p-3 shadow-sm text-center">
+    <p className="text-xs text-zinc-500">Viewed</p>
+    <p className="text-xl font-bold">
+      {MOCK_JOBS.reduce((sum, j) => sum + j.candidates.filter(c => c.status === "viewed").length, 0)}
+    </p>
+  </div>
+
+  <div className="rounded-md bg-white p-3 shadow-sm text-center">
+    <p className="text-xs text-zinc-500">Shortlisted</p>
+    <p className="text-xl font-bold">
+      {MOCK_JOBS.reduce((sum, j) => sum + j.candidates.filter(c => c.status === "shortlisted").length, 0)}
+    </p>
+  </div>
+
+  <div className="rounded-md bg-white p-3 shadow-sm text-center">
+    <p className="text-xs text-zinc-500">Interviewing</p>
+    <p className="text-xl font-bold">
+      {MOCK_JOBS.reduce((sum, j) => sum + j.candidates.filter(c => c.status === "interviewing").length, 0)}
+    </p>
+  </div>
+
+  <div className="rounded-md bg-white p-3 shadow-sm text-center">
+    <p className="text-xs text-zinc-500">Offer</p>
+    <p className="text-xl font-bold">
+      {MOCK_JOBS.reduce((sum, j) => sum + j.candidates.filter(c => c.status === "offer").length, 0)}
+    </p>
+  </div>
+
+  <div className="rounded-md bg-white p-3 shadow-sm text-center">
+    <p className="text-xs text-zinc-500">Rejected</p>
+    <p className="text-xl font-bold">
+      {MOCK_JOBS.reduce((sum, j) => sum + j.candidates.filter(c => c.status === "rejected").length, 0)}
+    </p>
+  </div>
+</div>
                 {/* Tabs */}
                 <div className="mb-6 border-b border-zinc-200">
                     <nav className="-mb-px flex space-x-8" aria-label="Tabs">

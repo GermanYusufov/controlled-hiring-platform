@@ -7,7 +7,7 @@ export async function GET(request: Request) {
   const code = searchParams.get('code')
   
   // The `next` parameter is where the user originally tried to go before logging in
-  const next = searchParams.get('next') ?? '/dashboard'
+  const next = searchParams.get('next') ?? '/onboarding'
 
   if (code) {
     const cookieStore = await cookies()
