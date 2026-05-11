@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { MOCK_JOBS } from "./data";
 import dynamic from "next/dynamic";
+import { createClient } from "@/utils/supabase/client";
 
 // Dynamically import Popup with SSR disabled
 const Popup = dynamic(() => import("reactjs-popup"), { ssr: false });
@@ -10,17 +11,48 @@ export default function DiscoveryPage() {
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
     const [isClient, setIsClient] = useState(false);
+    const [jobs, setJobs] = useState<any[]>([]);
 
-    const filteredJobs = MOCK_JOBS.filter(job =>
+    const filteredJobs = jobs.filter(job =>
         job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         job.company.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    const selectedJob = selectedJobId ? MOCK_JOBS.find(j => j.id === selectedJobId) : null;
+    const selectedJob = selectedJobId ? jobs.find(j => j.id === selectedJobId) : null;
 
     useEffect(() => {
-        setIsClient(true);
-    }, []);
+    setIsClient(true);
+
+  async function loadJobs() {
+    const supabase = createClient();
+
+    const { data, error } = await supabase
+      .from("JobPosting")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Failed to load external job dataset:", error.message);
+      return;
+    }
+
+    if (data && data.length > 0) {
+      setJobs(
+        data.map((job) => ({
+          id: job.id,
+          title: job.title,
+          company: "External Company",
+          location: job.location ?? "Remote",
+          type: job.status ?? "open",
+          description: job.description ?? "",
+          requirements: job.requirements ?? "",
+        }))
+      );
+    }
+  }
+
+  loadJobs();
+}, []);
 
     return (
         <div className="min-h-screen bg-zinc-50 px-4 py-12">
