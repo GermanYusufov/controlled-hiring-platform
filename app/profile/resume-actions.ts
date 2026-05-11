@@ -9,18 +9,21 @@ export async function uploadResume(formData: FormData) {
 
   const {
     data: { user },
+    error: userError,
   } = await supabase.auth.getUser();
 
-  if (!user) throw new Error("Unauthorized");
+  if (userError || !user) {
+    return { success: false, error: "Unauthorized" };
+  }
 
   const file = formData.get("resume") as File | null;
 
   if (!file || file.size === 0) {
-    throw new Error("No file selected");
+    return { success: false, error: "No file selected" };
   }
 
   if (file.type !== "application/pdf") {
-    throw new Error("Only PDF files are allowed");
+    return { success: false, error: "Only PDF files are allowed" };
   }
 
   const filePath = `${user.id}/${Date.now()}-${file.name}`;
@@ -32,7 +35,9 @@ export async function uploadResume(formData: FormData) {
       contentType: "application/pdf",
     });
 
-  if (uploadError) throw uploadError;
+  if (uploadError) {
+    return { success: false, error: uploadError.message };
+  }
 
   const { data } = supabase.storage.from("resumes").getPublicUrl(filePath);
 
@@ -43,5 +48,12 @@ export async function uploadResume(formData: FormData) {
     })
     .eq("user_id", user.id);
 
-  if (updateError) throw updateError;
+  if (updateError) {
+    return { success: false, error: updateError.message };
+  }
+
+  return {
+    success: true,
+    resumeUrl: data.publicUrl,
+  };
 }
