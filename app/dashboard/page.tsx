@@ -107,7 +107,8 @@ function EmptyState() {
       <p className="mt-1 max-w-xs text-sm text-zinc-500">
         Once you apply for roles, they&apos;ll appear here with live status updates.
       </p>
-      <a href="/jobs" className="mt-6 rounded-lg bg-zinc-900 px-5 py-2 text-sm font-medium text-white hover:bg-zinc-700 transition-colors">
+      {/* Update href from "/jobs" to "/discovery" */}
+      <a href="/discovery" className="mt-6 rounded-lg bg-zinc-900 px-5 py-2 text-sm font-medium text-white hover:bg-zinc-700 transition-colors">
         Browse open roles
       </a>
     </div>
@@ -177,12 +178,21 @@ export default async function DashboardPage() {
               Track every role you&apos;ve applied for.
             </p>
           </div>
-          <a
-            href="/profile"
-            className="rounded-lg border border-zinc-200 px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100 transition-colors"
-          >
-            Edit profile
-          </a>
+          {/* Group buttons in a flex container */}
+          <div className="flex items-center gap-3">
+            <a
+              href="/discovery"
+              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+            >
+              Discover Jobs
+            </a>
+            <a
+              href="/profile"
+              className="rounded-lg border border-zinc-200 px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100 transition-colors"
+            >
+              Edit profile
+            </a>
+          </div>
         </div>
 
         {/* Summary */}

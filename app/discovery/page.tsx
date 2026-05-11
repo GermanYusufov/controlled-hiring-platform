@@ -1,26 +1,31 @@
 "use client";
-import { useState, useEffect } from "react";
-import { MOCK_JOBS } from "./data";
-import dynamic from "next/dynamic";
 
-// Dynamically import Popup with SSR disabled
+import { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
+import { getJobs } from "./jobs-data";
+
 const Popup = dynamic(() => import("reactjs-popup"), { ssr: false });
 
 export default function DiscoveryPage() {
-    const [searchTerm, setSearchTerm] = useState("");
-    const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
-    const [isClient, setIsClient] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
+  const [isClient, setIsClient] = useState(false);
+  const [jobs, setJobs] = useState<any[]>([]);
 
-    const filteredJobs = MOCK_JOBS.filter(job =>
-        job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        job.company.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+  useEffect(() => {
+    setIsClient(true);
 
-    const selectedJob = selectedJobId ? MOCK_JOBS.find(j => j.id === selectedJobId) : null;
+    async function loadJobs() {
+      const data = await getJobs();
+      setJobs(data);
+    }
 
-    useEffect(() => {
-        setIsClient(true);
-    }, []);
+    loadJobs();
+  }, []);
+
+  const filteredJobs = jobs.filter((job) => {
+    const title = job.title || "";
+    const company = job.company || "";
 
     return (
         <div className="min-h-screen bg-zinc-50 px-4 py-12">
@@ -86,6 +91,9 @@ export default function DiscoveryPage() {
                     ))}
                 </div>
             </div>
-        </div>
-    );
+          </Popup>
+        )}
+      </div>
+    </div>
+  );
 }
