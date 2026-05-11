@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { MOCK_JOBS } from "./data";
 import dynamic from "next/dynamic";
+import { jobs } from "./jobs-data";
 
 // Dynamically import Popup with SSR disabled
 const Popup = dynamic(() => import("reactjs-popup"), { ssr: false });
@@ -54,21 +55,18 @@ export default function DiscoveryPage() {
 
                 {/* Job listings */}
                 <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                    {filteredJobs.map((job) => (
-                        <div key={job.id} className="rounded-lg border border-zinc-200 bg-white p-6 shadow-sm hover:border-blue-500 transition-colors">
-                            <h3 className="text-lg font-medium text-zinc-900">{job.title}</h3>
-                            <p className="mt-1 text-sm text-zinc-500">{job.company}</p>
-                            <p className="mt-0.5 text-xs text-zinc-400">
-                                Posted {new Date(job.posted_at).toLocaleDateString()}
-                            </p>
-                            <button
-                                onClick={() => setSelectedJobId(job.id)}
-                                className="mt-4 inline-block rounded-lg bg-blue-500 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
-                            >
-                                View Details
-                            </button>
-                        </div>
-                    ))}
+                {jobs.map((job) => (
+                <div key={job.id} className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
+                    <h2 className="text-xl font-semibold text-zinc-900">{job.title}</h2>
+                    <p className="mt-3 text-zinc-500">{job.company}</p>
+                    <p className="text-sm text-zinc-400">Posted {job.posted}</p>
+                    <p className="mt-2 text-sm text-zinc-500">{job.location}</p>
+
+                    <button className="mt-6 rounded-lg bg-blue-500 px-5 py-2 text-white">
+                    View Details
+                    </button>
+                </div>
+                ))}
                 </div>
 
                 {/* Job Details Popup */}
