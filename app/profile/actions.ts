@@ -1,171 +1,171 @@
 "use server";
 
 import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
 
-export type ProfileFormState = {
-  error?: string;
-  success?: boolean;
-};
+// 1. Fetch Profile Data (Used to pre-fill the form on page load)
+export async function getProfileData() {
+  const cookieStore = await cookies();
+  const supabase = createClient(cookieStore);
 
-async function getAuthenticatedUser(supabase: any) {
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Unauthorized");
 
-  if (authError || !user) redirect("/login");
-
-  const { data: userData, error: userError } = await supabase
+  // Check role
+  const { data: userData } = await supabase
     .from("User")
     .select("role")
     .eq("id", user.id)
     .single();
 
-  if (userError || !userData) {
-    throw new Error("User record not found: " + (userError?.message || "No data"));
-  }
+  const role = userData?.role || "applicant";
 
-  return { user, role: userData.role };
-}
-
-export async function updateApplicantProfile(formData: FormData): Promise<ProfileFormState> {
-  const cookieStore = await cookies();
-  const supabase = createClient(cookieStore);
-  const { user, role } = await getAuthenticatedUser(supabase);
-  if (role !== 'applicant') return { error: "Unauthorized." };
-
-  const name = String(formData.get("fullName") ?? "").trim();
-  const targetRole = String(formData.get("targetRole") ?? "").trim();
-  
-  if (!name) return { error: "Name is required." };
-
-  // 1. Upsert the base ApplicantProfile
-  const { data: applicantProfile, error: profileError } = await supabase
-    .from("ApplicantProfile")
-    .upsert({
-      user_id: user.id,
-      name: name,
-      target_role: targetRole,
-    }, { onConflict: 'user_id' })
-    .select('id')
-    .single();
-
-  if (profileError) return { error: `Profile Error: ${profileError.message}` };
-  const applicantId = applicantProfile.id;
-
-  // 2. Handle Education
-  const degree = String(formData.get("educationDegree") ?? "").trim();
-  const school = String(formData.get("educationSchool") ?? "").trim();
-  const year = String(formData.get("educationYear") ?? "").trim();
-
-  const { error: edDelError } = await supabase.from("ApplicantEducation").delete().eq("applicant_id", applicantId);
-  if (edDelError) return { error: `Ed Delete Error: ${edDelError.message}` };
-  
-  if (degree || school || year) {
-    const { error: edInsError } = await supabase.from("ApplicantEducation").insert({
-      applicant_id: applicantId,
-      institution: school || 'Not Specified',
-      degree: degree || null,
-      end_date: year ? `${year}-01-01` : null
-    });
-    if (edInsError) return { error: `Ed Insert Error: ${edInsError.message}` };
-  }
-
-  // 3. Handle Skills
-  const skillsStr = String(formData.get("skills") ?? "").trim();
-  
-  // FIX: Use a Set to automatically strip out any duplicate tags the user typed!
-  const skillsList = Array.from(new Set(skillsStr ? skillsStr.split(",").map(s => s.trim()).filter(Boolean) : []));
-
-  const { error: skillDelError } = await supabase.from("ApplicantSkill").delete().eq("applicant_id", applicantId);
-  if (skillDelError) return { error: `Skill Delete Error: ${skillDelError.message}` };
-
-  for (const skillName of skillsList) {
-    // Upsert the skill
-    const { data: skillRow, error: skillError } = await supabase
-      .from("Skill")
-      .upsert({ name: skillName }, { onConflict: 'name' })
-      .select('id')
-      .single();
-
-    // FIX: Catch and display the exact database error if one happens
-    if (skillError) return { error: `Skill Error [${skillName}]: ${skillError.message}` };
-
-    // Link it to the applicant
-    if (skillRow) {
-      const { error: linkError } = await supabase.from("ApplicantSkill").insert({
-        applicant_id: applicantId,
-        skill_id: skillRow.id
-      });
-      if (linkError) return { error: `Skill Link Error: ${linkError.message}` };
+  let profile = null;
+  if (role === "employer") {
+    const { data } = await supabase.from("CompanyProfile").select("*").eq("user_id", user.id).maybeSingle();
+    profile = data;
+  } else {
+    const { data } = await supabase.from("ApplicantProfile").select("*").eq("user_id", user.id).maybeSingle();
+    profile = data;
+    
+    // If you need to fetch their skills to pre-fill the UI, you would do a join here:
+    // This assumes you want to pull skills back out to show them on load
+    if (profile) {
+      const { data: skillsData } = await supabase
+        .from("ApplicantSkill")
+        .select("Skill(name)")
+        .eq("applicant_id", profile.id);
+        
+      if (skillsData) {
+        // @ts-ignore
+        profile.skills = skillsData.map(s => s.Skill.name).join(",");
+      }
     }
   }
 
-  return { success: true };
+  return { role, profile };
 }
 
-export async function updateCompanyProfile(formData: FormData): Promise<ProfileFormState> {
+// 2. Update Employer Profile
+export async function updateCompanyProfile(formData: FormData) {
   const cookieStore = await cookies();
   const supabase = createClient(cookieStore);
-  const { user, role } = await getAuthenticatedUser(supabase);
-  if (role !== 'employer') return { error: "Unauthorized." };
 
-  const companyName = String(formData.get("companyName") ?? "").trim();
-  const description = String(formData.get("description") ?? "").trim();
-  const location = String(formData.get("location") ?? "").trim();
-  const contactEmail = String(formData.get("contactEmail") ?? "").trim();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "Unauthorized" };
 
-  if (!companyName) return { error: "Company name is required." };
-  if (!contactEmail) return { error: "Contact email is required." };
+  const companyName = formData.get("companyName") as string;
+  const contactEmail = formData.get("contactEmail") as string;
+  const location = formData.get("location") as string;
+  const description = formData.get("description") as string;
 
   const { error } = await supabase
     .from("CompanyProfile")
-    .upsert({
-      user_id: user.id,
+    .update({
       company_name: companyName,
-      description: description,
-      location: location,
-      contact_email: contactEmail
-    }, { onConflict: 'user_id' });
+      contact_email: contactEmail,
+      location,
+      description,
+    })
+    .eq("user_id", user.id);
 
   if (error) return { error: error.message };
-
   return { success: true };
 }
 
-export async function getProfileData() {
+// 3. Update Applicant Profile (With Resume Upload & Normalized Skills)
+export async function updateApplicantProfile(formData: FormData) {
   const cookieStore = await cookies();
   const supabase = createClient(cookieStore);
 
-  const { user, role } = await getAuthenticatedUser(supabase);
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "Unauthorized" };
 
-  if (role === "employer") {
-    const { data } = await supabase.from("CompanyProfile").select("*").eq("user_id", user.id).maybeSingle();
-    return { profile: data, role };
-  } else {
-    const { data } = await supabase
-      .from("ApplicantProfile")
-      .select(`
-        *,
-        ApplicantEducation ( degree, institution, end_date ),
-        ApplicantSkill ( Skill ( name ) )
-      `)
-      .eq("user_id", user.id)
-      .maybeSingle();
+  // Extract text fields
+  const name = formData.get("fullName") as string;
+  const targetRole = formData.get("targetRole") as string;
+  
+  const updatePayload: any = {
+    name,
+    target_role: targetRole,
+  };
 
-    if (data) {
-      const skillsArr = data.ApplicantSkill?.map((sk: any) => sk.Skill?.name).filter(Boolean) || [];
-      data.skills = skillsArr.join(",");
+  // Handle the Resume file
+  const resumeFile = formData.get("resume") as File | null;
 
-      const ed = data.ApplicantEducation?.[0];
-      if (ed) {
-        const year = ed.end_date ? ed.end_date.split('-')[0] : "";
-        data.education = [ed.degree, ed.institution, year].filter(Boolean).join(" - ");
-      }
+  if (resumeFile && resumeFile.size > 0) {
+    if (resumeFile.type !== "application/pdf") {
+      return { error: "Only PDF files are allowed for resumes." };
     }
 
-    return { profile: data, role };
+    const filePath = `${user.id}/${Date.now()}-${resumeFile.name}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("resumes")
+      .upload(filePath, resumeFile, {
+        upsert: true,
+        contentType: "application/pdf",
+      });
+
+    if (uploadError) return { error: uploadError.message };
+
+    const { data: urlData } = supabase.storage
+      .from("resumes")
+      .getPublicUrl(filePath);
+
+    updatePayload.resume_url = urlData.publicUrl;
   }
+
+  // Update ApplicantProfile table and return the profile ID
+  const { data: profileData, error: updateError } = await supabase
+    .from("ApplicantProfile")
+    .update(updatePayload)
+    .eq("user_id", user.id)
+    .select("id")
+    .single();
+
+  if (updateError) return { error: updateError.message };
+  if (!profileData) return { error: "Applicant profile not found." };
+
+  // Handle the normalized Skills tables
+  const skillsString = formData.get("skills") as string;
+  const applicantId = profileData.id;
+
+  if (skillsString) {
+    const skillNames = skillsString.split(",").map(s => s.trim()).filter(Boolean);
+
+    await supabase
+      .from("ApplicantSkill")
+      .delete()
+      .eq("applicant_id", applicantId);
+
+    for (const skillName of skillNames) {
+      let { data: skillData } = await supabase
+        .from("Skill")
+        .select("id")
+        .eq("name", skillName)
+        .maybeSingle();
+
+      if (!skillData) {
+        const { data: newSkill } = await supabase
+          .from("Skill")
+          .insert({ name: skillName })
+          .select("id")
+          .single();
+          
+        skillData = newSkill;
+      }
+
+      if (skillData) {
+        await supabase
+          .from("ApplicantSkill")
+          .insert({
+            applicant_id: applicantId,
+            skill_id: skillData.id
+          });
+      }
+    }
+  }
+
+  return { success: true };
 }
