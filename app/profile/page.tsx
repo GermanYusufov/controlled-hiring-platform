@@ -3,6 +3,7 @@
 import { useState, useTransition, KeyboardEvent, Suspense, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { updateApplicantProfile, updateCompanyProfile, getProfileData } from "./actions";
+import { uploadResume } from "./resume-actions";
 
 const SUGGESTED_SKILLS = [
   "JavaScript", "TypeScript", "React", "Next.js", "Node.js", "Python",
@@ -86,8 +87,25 @@ function ProfileEditorContent() {
     formData.set("skills", skills.join(","));
 
     startTransition(async () => {
-      const result = await updateApplicantProfile(formData);
-      setState(result ?? {});
+      const profileResult = await updateApplicantProfile(formData);
+
+      if (profileResult?.error) {
+        setState(profileResult);
+        return;
+      }
+
+      const resumeFile = formData.get("resume") as File | null;
+
+      if (resumeFile && resumeFile.size > 0) {
+        const resumeResult = await uploadResume(formData);
+
+        if (resumeResult?.error) {
+          setState({ error: resumeResult.error });
+          return;
+        }
+      }
+
+      setState({ success: true });
     });
   }
 
@@ -198,10 +216,10 @@ function ProfileEditorContent() {
           <section className="rounded-2xl bg-white p-6 shadow-sm">
             <h2 className="mb-1 text-base font-semibold text-zinc-900">Skills</h2>
             <p className="mb-4 text-sm text-zinc-500">
-              Type a skill and press <span className="rounded border border-zinc-200 px-1 py-0.5">Enter</span> or <span className="rounded border border-zinc-200 px-1 py-0.5">,</span> to add it. Backspace removes the last one.
+              Type a skill and press Enter or comma to add it.
             </p>
 
-            <div className="flex min-h-[44px] flex-wrap gap-2 rounded-lg border border-zinc-200 px-3 py-2 focus-within:border-zinc-900 focus-within:ring-1 focus-within:ring-zinc-900">
+            <div className="flex min-h-[44px] flex-wrap gap-2 rounded-lg border border-zinc-200 px-3 py-2">
               {skills.map((skill) => (
                 <span key={skill} className="flex items-center gap-1 rounded-full bg-zinc-900 px-2.5 py-1 text-xs font-medium text-white">
                   {skill}
@@ -213,55 +231,38 @@ function ProfileEditorContent() {
 
               <input value={skillInput} onChange={(e) => setSkillInput(e.target.value)} onKeyDown={handleSkillKeyDown} onBlur={() => skillInput && addSkill(skillInput)} placeholder={skills.length === 0 ? "e.g. React, Python, SQL…" : ""} className="min-w-[120px] flex-1 bg-transparent text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none" />
             </div>
-
-            <div className="mt-3">
-              <p className="mb-2 text-xs text-zinc-400">Suggestions</p>
-              <div className="flex flex-wrap gap-2">
-                {SUGGESTED_SKILLS.filter((s) => !skills.includes(s)).map((suggestion) => (
-                  <button key={suggestion} type="button" onClick={() => addSkill(suggestion)} className="rounded-full border border-zinc-200 px-2.5 py-1 text-xs text-zinc-600 hover:border-zinc-400 hover:text-zinc-900 transition-colors">
-                    + {suggestion}
-                  </button>
-                ))}
-              </div>
-            </div>
           </section>
 
           <section className="rounded-2xl bg-white p-6 shadow-sm">
             <h2 className="mb-4 text-base font-semibold text-zinc-900">Education</h2>
 
             <div className="flex flex-col gap-4">
-              <div className="flex flex-col gap-1">
-                <label htmlFor="educationDegree" className="text-sm font-medium text-zinc-700">Highest degree</label>
-                <select id="educationDegree" name="educationDegree" defaultValue={edParts[0] || ""} className="rounded-lg border border-zinc-200 px-3 py-2 text-sm text-zinc-900 focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900">
-                  <option value="" disabled>Select a degree…</option>
-                  {DEGREE_OPTIONS.map((d) => (
-                    <option key={d} value={d}>{d}</option>
-                  ))}
-                </select>
-              </div>
+              <select name="educationDegree" defaultValue={edParts[0] || ""} className="rounded-lg border border-zinc-200 px-3 py-2 text-sm text-zinc-900">
+                <option value="" disabled>Select a degree…</option>
+                {DEGREE_OPTIONS.map((d) => (
+                  <option key={d} value={d}>{d}</option>
+                ))}
+              </select>
 
-              <div className="flex flex-col gap-1">
-                <label htmlFor="educationSchool" className="text-sm font-medium text-zinc-700">School / institution</label>
-                <input id="educationSchool" name="educationSchool" type="text" defaultValue={edParts[1] || ""} placeholder="e.g. University of Edinburgh" className="rounded-lg border border-zinc-200 px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900" />
-              </div>
+              <input name="educationSchool" type="text" defaultValue={edParts[1] || ""} placeholder="School / institution" className="rounded-lg border border-zinc-200 px-3 py-2 text-sm text-zinc-900" />
 
-              <div className="flex flex-col gap-1">
-                <label htmlFor="educationYear" className="text-sm font-medium text-zinc-700">Graduation year</label>
-                <input id="educationYear" name="educationYear" type="number" min={1950} max={2030} defaultValue={edParts[2] || ""} placeholder="e.g. 2022" className="w-32 rounded-lg border border-zinc-200 px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900" />
-              </div>
+              <input name="educationYear" type="number" min={1950} max={2030} defaultValue={edParts[2] || ""} placeholder="Graduation year" className="w-32 rounded-lg border border-zinc-200 px-3 py-2 text-sm text-zinc-900" />
             </div>
           </section>
 
           <section className="rounded-2xl bg-white p-6 shadow-sm">
             <h2 className="mb-4 text-base font-semibold text-zinc-900">Resume</h2>
 
-            <div className="flex flex-col gap-4">
-              <input type="file" name="resume" accept=".pdf" className="rounded-lg border border-zinc-200 px-3 py-2 text-sm" />
+            <input
+              type="file"
+              name="resume"
+              accept=".pdf"
+              className="rounded-lg border border-zinc-200 px-3 py-2 text-sm"
+            />
 
-              <button type="button" className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white">
-                Upload Resume
-              </button>
-            </div>
+            <p className="mt-2 text-xs text-zinc-400">
+              Upload a PDF resume. It will be saved when you click Save profile.
+            </p>
           </section>
 
           {state.error && <p role="alert" className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">{state.error}</p>}
