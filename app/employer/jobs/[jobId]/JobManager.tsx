@@ -70,22 +70,23 @@ export default function JobManager({ job, applicants }: { job: any, applicants: 
             )}
 
             {/* Tab Content: Edit Job */}
+            {/* Tab Content: Edit Job */}
             {activeTab === "edit" && (
                 <div className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
                     <form onSubmit={handleUpdate} className="flex flex-col gap-4">
                         <div>
                             <label className="mb-1 block text-sm font-medium text-zinc-700">Job Title</label>
-                            <input required type="text" name="job_title" defaultValue={job.job_title} className="w-full rounded-lg border border-zinc-300 px-3 py-2 outline-none focus:border-zinc-900" />
+                            <input required type="text" name="job_title" defaultValue={job.job_title} className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-zinc-900 bg-white outline-none focus:border-zinc-900" />
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <label className="mb-1 block text-sm font-medium text-zinc-700">Location</label>
-                                <input type="text" name="job_location" defaultValue={job.job_location} className="w-full rounded-lg border border-zinc-300 px-3 py-2 outline-none focus:border-zinc-900" />
+                                <input type="text" name="job_location" defaultValue={job.job_location} className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-zinc-900 bg-white outline-none focus:border-zinc-900" />
                             </div>
                             <div>
                                 <label className="mb-1 block text-sm font-medium text-zinc-700">Job Type</label>
-                                <select name="job_type" defaultValue={job.job_type} className="w-full rounded-lg border border-zinc-300 px-3 py-2 outline-none focus:border-zinc-900 bg-white">
+                                <select name="job_type" defaultValue={job.job_type} className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-zinc-900 bg-white outline-none focus:border-zinc-900">
                                     <option value="Full-time">Full-time</option>
                                     <option value="Part-time">Part-time</option>
                                     <option value="Contract">Contract</option>
@@ -96,7 +97,7 @@ export default function JobManager({ job, applicants }: { job: any, applicants: 
 
                         <div>
                             <label className="mb-1 block text-sm font-medium text-zinc-700">Job Level</label>
-                            <select name="job_level" defaultValue={job.job_level} className="w-full rounded-lg border border-zinc-300 px-3 py-2 outline-none focus:border-zinc-900 bg-white">
+                            <select name="job_level" defaultValue={job.job_level} className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-zinc-900 bg-white outline-none focus:border-zinc-900">
                                 <option value="Entry Level">Entry Level</option>
                                 <option value="Mid Level">Mid Level</option>
                                 <option value="Senior Level">Senior Level</option>
@@ -106,12 +107,12 @@ export default function JobManager({ job, applicants }: { job: any, applicants: 
 
                         <div>
                             <label className="mb-1 block text-sm font-medium text-zinc-700">Job Summary</label>
-                            <textarea name="job_summary" rows={4} defaultValue={job.job_summary} className="w-full rounded-lg border border-zinc-300 px-3 py-2 outline-none focus:border-zinc-900 resize-none" />
+                            <textarea name="job_summary" rows={4} defaultValue={job.job_summary} className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-zinc-900 bg-white outline-none focus:border-zinc-900 resize-none" />
                         </div>
 
                         <div>
                             <label className="mb-1 block text-sm font-medium text-zinc-700">Skills (Comma separated)</label>
-                            <input type="text" name="job_skills" defaultValue={job.job_skills} className="w-full rounded-lg border border-zinc-300 px-3 py-2 outline-none focus:border-zinc-900" />
+                            <input type="text" name="job_skills" defaultValue={job.job_skills} className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-zinc-900 bg-white outline-none focus:border-zinc-900" />
                         </div>
 
                         <div className="mt-4 flex items-center justify-between border-t border-zinc-100 pt-5">

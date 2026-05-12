@@ -1,3 +1,4 @@
+// app/employer/jobs/new/page.tsx
 import Link from "next/link";
 import { createJobPosting } from "./actions";
 
@@ -25,12 +26,12 @@ export default function PostRolePage() {
           <div className="grid grid-cols-2 gap-4">
             <div className="col-span-2">
               <label className="mb-1 block text-sm font-medium text-zinc-700">Job Title *</label>
-              <input required type="text" name="job_title" placeholder="e.g. Senior Frontend Engineer" className="w-full rounded-lg border border-zinc-300 px-3 py-2 outline-none focus:border-zinc-900" />
+              <input required type="text" name="job_title" placeholder="e.g. Senior Frontend Engineer" className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-zinc-900 placeholder-zinc-400 bg-white outline-none focus:border-zinc-900" />
             </div>
 
             <div className="col-span-2">
               <label className="mb-1 block text-sm font-medium text-zinc-700">Company Display Name</label>
-              <input type="text" name="company" placeholder="Leave blank to use profile name" className="w-full rounded-lg border border-zinc-300 px-3 py-2 outline-none focus:border-zinc-900" />
+              <input type="text" name="company" placeholder="Leave blank to use profile name" className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-zinc-900 placeholder-zinc-400 bg-white outline-none focus:border-zinc-900" />
             </div>
           </div>
 
@@ -38,21 +39,21 @@ export default function PostRolePage() {
           <div className="grid grid-cols-2 gap-4 border-t border-zinc-100 pt-5">
             <div className="col-span-2">
               <label className="mb-1 block text-sm font-medium text-zinc-700">General Location</label>
-              <input type="text" name="job_location" placeholder="e.g. Remote, UK or New York, NY" className="w-full rounded-lg border border-zinc-300 px-3 py-2 outline-none focus:border-zinc-900" />
+              <input type="text" name="job_location" placeholder="e.g. Remote, UK or New York, NY" className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-zinc-900 placeholder-zinc-400 bg-white outline-none focus:border-zinc-900" />
             </div>
 
             <div>
               <label className="mb-1 block text-sm font-medium text-zinc-700">Search City</label>
-              <input type="text" name="search_city" placeholder="e.g. New York" className="w-full rounded-lg border border-zinc-300 px-3 py-2 outline-none focus:border-zinc-900" />
+              <input type="text" name="search_city" placeholder="e.g. New York" className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-zinc-900 placeholder-zinc-400 bg-white outline-none focus:border-zinc-900" />
             </div>
             <div>
               <label className="mb-1 block text-sm font-medium text-zinc-700">Search Country</label>
-              <input type="text" name="search_country" placeholder="e.g. USA" className="w-full rounded-lg border border-zinc-300 px-3 py-2 outline-none focus:border-zinc-900" />
+              <input type="text" name="search_country" placeholder="e.g. USA" className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-zinc-900 placeholder-zinc-400 bg-white outline-none focus:border-zinc-900" />
             </div>
 
             <div>
               <label className="mb-1 block text-sm font-medium text-zinc-700">Job Type</label>
-              <select name="job_type" className="w-full rounded-lg border border-zinc-300 px-3 py-2 outline-none focus:border-zinc-900 bg-white">
+              <select name="job_type" className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-zinc-900 bg-white outline-none focus:border-zinc-900">
                 <option value="Full-time">Full-time</option>
                 <option value="Part-time">Part-time</option>
                 <option value="Contract">Contract</option>
@@ -61,7 +62,7 @@ export default function PostRolePage() {
             </div>
             <div>
               <label className="mb-1 block text-sm font-medium text-zinc-700">Job Level</label>
-              <select name="job_level" className="w-full rounded-lg border border-zinc-300 px-3 py-2 outline-none focus:border-zinc-900 bg-white">
+              <select name="job_level" className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-zinc-900 bg-white outline-none focus:border-zinc-900">
                 <option value="Entry Level">Entry Level</option>
                 <option value="Mid Level">Mid Level</option>
                 <option value="Senior Level">Senior Level</option>
@@ -74,17 +75,17 @@ export default function PostRolePage() {
           <div className="flex flex-col gap-4 border-t border-zinc-100 pt-5">
             <div>
               <label className="mb-1 block text-sm font-medium text-zinc-700">Job Summary</label>
-              <textarea name="job_summary" rows={4} placeholder="Describe the responsibilities and requirements..." className="w-full rounded-lg border border-zinc-300 px-3 py-2 outline-none focus:border-zinc-900 resize-none" />
+              <textarea name="job_summary" rows={4} placeholder="Describe the responsibilities and requirements..." className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-zinc-900 placeholder-zinc-400 bg-white outline-none focus:border-zinc-900 resize-none" />
             </div>
             
             <div>
               <label className="mb-1 block text-sm font-medium text-zinc-700">Target Skills</label>
-              <input type="text" name="job_skills" placeholder="e.g. React, TypeScript, Node.js (comma separated)" className="w-full rounded-lg border border-zinc-300 px-3 py-2 outline-none focus:border-zinc-900" />
+              <input type="text" name="job_skills" placeholder="e.g. React, TypeScript, Node.js (comma separated)" className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-zinc-900 placeholder-zinc-400 bg-white outline-none focus:border-zinc-900" />
             </div>
 
             <div>
               <label className="mb-1 block text-sm font-medium text-zinc-700">External Job Link (Optional)</label>
-              <input type="url" name="job_link" placeholder="https://..." className="w-full rounded-lg border border-zinc-300 px-3 py-2 outline-none focus:border-zinc-900" />
+              <input type="url" name="job_link" placeholder="https://..." className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-zinc-900 placeholder-zinc-400 bg-white outline-none focus:border-zinc-900" />
             </div>
           </div>
 
