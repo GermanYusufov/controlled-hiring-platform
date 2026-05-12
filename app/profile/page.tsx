@@ -253,12 +253,6 @@ function ProfileEditorContent() {
           <section className="rounded-2xl bg-white p-6 shadow-sm">
             <h2 className="mb-4 text-base font-semibold text-zinc-900">Resume</h2>
 
-            <input
-              type="file"
-              name="resume"
-              accept=".pdf"
-              className="rounded-lg border border-zinc-200 px-3 py-2 text-sm"
-            />
 
             <p className="mt-2 text-xs text-zinc-400">
               Upload a PDF resume. It will be saved when you click Save profile.
