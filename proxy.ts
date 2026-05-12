@@ -4,7 +4,7 @@ import { createClient } from "@/backend/utils/supabase/middleware";
 const protectedRoutes = ["/dashboard", "/profile", "/employer", "/discovery"];
 const authRoutes = ["/login", "/signup"];
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { supabase, response } = createClient(request);
 
   // getUser() refreshes the session token if needed — do not use getSession() here
