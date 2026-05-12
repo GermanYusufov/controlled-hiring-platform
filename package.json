@@ -14,7 +14,8 @@
     "next": "16.2.4",
     "react": "19.2.4",
     "react-dom": "19.2.4",
-    "reactjs-popup": "^2.0.6"
+    "reactjs-popup": "^2.0.6",
+    "rough-notation": "^0.5.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

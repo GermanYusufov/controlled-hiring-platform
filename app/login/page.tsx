@@ -28,7 +28,7 @@ export default function LoginPage() {
             Log in to your account
           </h1>
           <p className="mt-1 text-sm text-zinc-500">
-            Welcome back to Sachok Job!
+            Welcome back to HireControl.
           </p>
         </div>
 
