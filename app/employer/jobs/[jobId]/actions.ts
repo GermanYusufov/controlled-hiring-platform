@@ -52,10 +52,11 @@ export async function deleteJobPosting(jobId: string) {
 export async function updateCandidateStatus(applicationId: string, newStatus: string, jobId: string) {
   const cookieStore = await cookies();
   const supabase = createClient(cookieStore);
+  const dbStatus = newStatus.toUpperCase();
 
   const { error } = await supabase
     .from("Application")
-    .update({ status: newStatus })
+    .update({ status: dbStatus })
     .eq("id", applicationId);
 
   if (error) {
