@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { annotate, RoughAnnotation } from "rough-notation";
+import { annotate } from "rough-notation";
 
 interface RoughButtonProps {
   href: string;
@@ -17,7 +17,7 @@ export default function RoughButton({
   annotationColor = "#18181b",
 }: RoughButtonProps) {
   const ref = useRef<HTMLAnchorElement>(null);
-  const annotationRef = useRef<RoughAnnotation | null>(null);
+  const annotationRef = useRef<ReturnType<typeof annotate> | null>(null);
 
   useEffect(() => {
     const el = ref.current;
