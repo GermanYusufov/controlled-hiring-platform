@@ -32,10 +32,18 @@ export default function LoginPage() {
           </p>
         </div>
 
-        {/* GOOGLE STUFF */}
         <GoogleSignInButton />
 
-        <form onSubmit={handleSubmit} noValidate className="mt-6 flex flex-col gap-6">
+        <div className="relative my-6">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-zinc-200" />
+          </div>
+          <div className="relative flex justify-center">
+            <span className="bg-white px-3 text-xs text-zinc-400">or continue with email</span>
+          </div>
+        </div>
+
+        <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-6">
           {/* Email */}
           <div className="flex flex-col gap-1">
             <label
