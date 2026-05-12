@@ -1,36 +1,73 @@
+// app/employer/jobs/[jobId]/actions.ts
 "use server";
 
-import type { ApplicationStatus } from "@/app/dashboard/data";
+import { createClient } from "@/backend/utils/supabase/server";
+import { cookies } from "next/headers";
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
-export type UpdateStatusResult = { error?: string; success?: boolean };
+export async function updateJobPosting(jobId: string, formData: FormData) {
+  const cookieStore = await cookies();
+  const supabase = createClient(cookieStore);
+  
+  const updatedData = {
+    job_title: formData.get("job_title") as string,
+    job_location: formData.get("job_location") as string,
+    job_type: formData.get("job_type") as string,
+    job_level: formData.get("job_level") as string,
+    job_summary: formData.get("job_summary") as string,
+    job_skills: formData.get("job_skills") as string,
+  };
 
-const VALID_STATUSES: ApplicationStatus[] = [
-  "submitted",
-  "viewed",
-  "shortlisted",
-  "interviewing",
-  "rejected",
-  "offer",
-];
+  const { error } = await supabase.from("JobPosting").update(updatedData).eq("id", jobId);
 
-export async function updateCandidateStatus(
-  candidateId: string,
-  newStatus: ApplicationStatus,
-): Promise<UpdateStatusResult> {
-  if (!candidateId) return { error: "Missing candidate ID." };
-  if (!VALID_STATUSES.includes(newStatus)) return { error: "Invalid status." };
+  if (error) {
+    console.error("Update failed:", error);
+    throw new Error("Failed to update job.");
+  }
 
-  // TODO: replace with real Supabase update once auth is wired up
-  // const cookieStore = await cookies();
-  // const supabase = createClient(cookieStore);
-  // const { error } = await supabase
-  //   .from("applications")
-  //   .update({ status: newStatus, status_updated_at: new Date().toISOString() })
-  //   .eq("id", candidateId);
-  // if (error) return { error: error.message };
+  revalidatePath(`/employer/jobs/${jobId}`);
+  revalidatePath("/employer/jobs");
+  revalidatePath("/discovery");
+}
 
-  // Simulate network latency
-  await new Promise((r) => setTimeout(r, 400));
+export async function deleteJobPosting(jobId: string) {
+  const cookieStore = await cookies();
+  const supabase = createClient(cookieStore);
 
+  const { error } = await supabase.from("JobPosting").delete().eq("id", jobId);
+
+  if (error) {
+    console.error("Delete failed:", error);
+    throw new Error("Failed to delete job.");
+  }
+
+  revalidatePath("/employer/jobs");
+  revalidatePath("/employer/dashboard");
+  revalidatePath("/discovery");
+  redirect("/employer/jobs");
+}
+
+// app/employer/jobs/[jobId]/actions.ts
+export async function updateCandidateStatus(applicationId: string, newStatus: string, jobId: string) {
+  const cookieStore = await cookies();
+  const supabase = createClient(cookieStore);
+
+  const { error } = await supabase
+    .from("Application")
+    .update({ status: newStatus })
+    .eq("id", applicationId);
+
+  if (error) {
+    console.error("Failed to update candidate status:", error);
+    return { error: "Failed to update candidate status." };
+  }
+
+  if (jobId) {
+    revalidatePath(`/employer/jobs/${jobId}`);
+  }
+  revalidatePath("/employer/applications");
+  revalidatePath("/employer/dashboard");
+  
   return { success: true };
 }

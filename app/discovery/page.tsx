@@ -1,3 +1,4 @@
+// app/discovery/page.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -14,7 +15,6 @@ export default function DiscoveryPage() {
   const [isClient, setIsClient] = useState(false);
   const [jobs, setJobs] = useState<any[]>([]);
   
-  // New state variables for the application flow
   const [hasResume, setHasResume] = useState(false);
   const [applicantId, setApplicantId] = useState<string | null>(null);
   const [isApplying, setIsApplying] = useState(false);
@@ -33,7 +33,7 @@ export default function DiscoveryPage() {
   }, []);
 
   const filteredJobs = jobs.filter((job) => {
-    const title = job.title || "";
+    const title = job.job_title || ""; 
     const company = job.company || "";
 
     return (
@@ -54,10 +54,8 @@ export default function DiscoveryPage() {
     setIsApplying(false);
 
     if (error) {
-      alert("Failed to apply. You might have already applied to this job.");
-      console.error(error);
+      alert(error);
     } else {
-      // Update local state so the progress bar fills up immediately
       setJobs((prevJobs) =>
         prevJobs.map((job) =>
           job.id === selectedJob.id
@@ -66,7 +64,7 @@ export default function DiscoveryPage() {
         )
       );
       alert("Successfully applied! Your profile has been sent to the employer.");
-      setSelectedJobId(null); // Close the popup
+      setSelectedJobId(null);
     }
   };
 
@@ -93,7 +91,7 @@ export default function DiscoveryPage() {
         <div className="mt-6">
           <input
             type="text"
-            placeholder="Search jobs..."
+            placeholder="Search for a specific title or company..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full rounded-lg border placeholder-zinc-500 text-zinc-500 border-zinc-300 px-4 py-2 focus:border-blue-500 focus:outline-none"
@@ -104,25 +102,37 @@ export default function DiscoveryPage() {
           {filteredJobs.map((job) => (
             <div
               key={job.id}
-              className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm"
+              className="flex flex-col rounded-xl border border-zinc-200 bg-white p-6 shadow-sm"
             >
-              <h2 className="text-xl font-semibold text-zinc-900">
-                {job.title}
-              </h2>
+              <div className="flex-1">
+                {/* FIXED: Uses line-clamp and break-words to handle long titles gracefully */}
+                <h2 
+                  className="text-xl font-semibold text-zinc-900 line-clamp-2 break-words" 
+                  title={job.job_title}
+                >
+                  {job.job_title}
+                </h2>
 
-              <p className="mt-3 text-zinc-500">{job.company}</p>
+                {/* FIXED: Truncates long company names to stay strictly on one line */}
+                <p 
+                  className="mt-3 text-zinc-500 truncate" 
+                  title={job.company}
+                >
+                  {job.company}
+                </p>
 
-              <p className="mt-2 text-sm text-zinc-500">
-                {job.job_location || "Location not listed"}
-              </p>
+                <p className="mt-2 text-sm text-zinc-500 truncate">
+                  {job.job_location || "Location not listed"}
+                </p>
 
-              <p className="text-sm text-zinc-400">
-                Posted {job.first_seen || "N/A"}
-              </p>
+                <p className="text-sm text-zinc-400 mt-1">
+                  Posted {job.first_seen || new Date(job.created_at).toLocaleDateString()}
+                </p>
+              </div>
 
               <button
                 onClick={() => setSelectedJobId(job.id)}
-                className="mt-6 rounded-lg bg-blue-500 px-5 py-2 text-white hover:bg-blue-600 transition-colors"
+                className="mt-6 rounded-lg bg-blue-500 px-5 py-2 text-white hover:bg-blue-600 transition-colors w-full"
               >
                 View Details
               </button>
@@ -139,33 +149,33 @@ export default function DiscoveryPage() {
           >
             <div className="fixed inset-0 z-50 overflow-y-auto bg-black/40 px-4 py-8">
               <div className="mx-auto max-w-3xl max-h-[90vh] overflow-y-auto rounded-xl bg-zinc-50 p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <h1 className="text-2xl font-bold tracking-tight text-zinc-900">
+                <div className="flex items-center justify-between mb-6 gap-4">
+                  <h1 className="text-2xl font-bold tracking-tight text-zinc-900 shrink-0">
                     Job Details
                   </h1>
 
                   <button
                     onClick={() => setSelectedJobId(null)}
-                    className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700"
+                    className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700 shrink-0"
                   >
                     Close
                   </button>
                 </div>
 
                 <div className="rounded-lg border border-zinc-200 bg-white p-6 shadow-sm">
-                  <h2 className="text-xl font-semibold text-zinc-900">
-                    {selectedJob.title}
+                  {/* FIXED: break-words added here as well */}
+                  <h2 className="text-xl font-semibold text-zinc-900 break-words">
+                    {selectedJob.job_title} 
                   </h2>
 
-                  <p className="mt-1 text-sm text-zinc-500">
+                  <p className="mt-1 text-sm text-zinc-500 break-words">
                     {selectedJob.company}
                   </p>
 
-                  <p className="mt-4 text-sm text-zinc-600">
+                  <p className="mt-4 text-sm text-zinc-600 break-words">
                     {selectedJob.job_location || "Location not listed"}
                   </p>
 
-                  {/* 10-Piece Progress Bar Section */}
                   <div className="mt-6 rounded-lg bg-zinc-50 p-4 border border-zinc-100">
                     <div className="flex justify-between items-center mb-2">
                       <span className="text-sm font-medium text-zinc-700">Applicant Spots</span>
@@ -199,7 +209,7 @@ export default function DiscoveryPage() {
                       Description
                     </h3>
 
-                    <p className="text-zinc-700 whitespace-pre-wrap">
+                    <p className="text-zinc-700 whitespace-pre-wrap break-words">
                       {selectedJob.job_summary ||
                         selectedJob.description ||
                         "No description available."}
@@ -211,7 +221,7 @@ export default function DiscoveryPage() {
                       <h3 className="text-lg font-medium text-zinc-900 mb-2">
                         Skills
                       </h3>
-                      <p className="text-zinc-700">{selectedJob.job_skills}</p>
+                      <p className="text-zinc-700 break-words">{selectedJob.job_skills}</p>
                     </div>
                   )}
 
@@ -237,7 +247,6 @@ export default function DiscoveryPage() {
                       </button>
                     </div>
 
-                    {/* Resume Warning Message */}
                     {!hasResume && selectedJob.applicationCount < MAX_APPLICATIONS && (
                       <p className="text-sm font-medium text-red-500 mt-1">
                         * You must add a resume to your profile before applying.
