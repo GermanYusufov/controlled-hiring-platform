@@ -2,25 +2,34 @@
 
 import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { getJobs } from "./jobs-data";
+import { getDiscoveryData, applyToJob } from "./jobs-data";
 
 const Popup = dynamic(() => import("reactjs-popup"), { ssr: false });
+
+const MAX_APPLICATIONS = 10;
 
 export default function DiscoveryPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
   const [isClient, setIsClient] = useState(false);
   const [jobs, setJobs] = useState<any[]>([]);
+  
+  // New state variables for the application flow
+  const [hasResume, setHasResume] = useState(false);
+  const [applicantId, setApplicantId] = useState<string | null>(null);
+  const [isApplying, setIsApplying] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
 
-    async function loadJobs() {
-      const data = await getJobs();
-      setJobs(data);
+    async function loadData() {
+      const data = await getDiscoveryData();
+      setJobs(data.jobs);
+      setHasResume(data.hasResume);
+      setApplicantId(data.applicantId);
     }
 
-    loadJobs();
+    loadData();
   }, []);
 
   const filteredJobs = jobs.filter((job) => {
@@ -36,6 +45,30 @@ export default function DiscoveryPage() {
   const selectedJob = selectedJobId
     ? jobs.find((job) => job.id === selectedJobId)
     : null;
+
+  const handleApply = async () => {
+    if (!selectedJob || !applicantId) return;
+    
+    setIsApplying(true);
+    const { error } = await applyToJob(selectedJob.id, applicantId);
+    setIsApplying(false);
+
+    if (error) {
+      alert("Failed to apply. You might have already applied to this job.");
+      console.error(error);
+    } else {
+      // Update local state so the progress bar fills up immediately
+      setJobs((prevJobs) =>
+        prevJobs.map((job) =>
+          job.id === selectedJob.id
+            ? { ...job, applicationCount: job.applicationCount + 1 }
+            : job
+        )
+      );
+      alert("Successfully applied! Your profile has been sent to the employer.");
+      setSelectedJobId(null); // Close the popup
+    }
+  };
 
   return (
     <div className="min-h-screen bg-zinc-50 px-4 py-12">
@@ -89,7 +122,7 @@ export default function DiscoveryPage() {
 
               <button
                 onClick={() => setSelectedJobId(job.id)}
-                className="mt-6 rounded-lg bg-blue-500 px-5 py-2 text-white"
+                className="mt-6 rounded-lg bg-blue-500 px-5 py-2 text-white hover:bg-blue-600 transition-colors"
               >
                 View Details
               </button>
@@ -132,16 +165,41 @@ export default function DiscoveryPage() {
                     {selectedJob.job_location || "Location not listed"}
                   </p>
 
-                  <p className="mt-2 text-xs text-zinc-400">
-                    Posted {selectedJob.first_seen || "N/A"}
-                  </p>
+                  {/* 10-Piece Progress Bar Section */}
+                  <div className="mt-6 rounded-lg bg-zinc-50 p-4 border border-zinc-100">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-sm font-medium text-zinc-700">Applicant Spots</span>
+                      <span className="text-xs font-semibold text-zinc-500">
+                        {selectedJob.applicationCount} / {MAX_APPLICATIONS} Filled
+                      </span>
+                    </div>
+                    
+                    <div className="flex gap-1 h-3 w-full">
+                      {Array.from({ length: MAX_APPLICATIONS }).map((_, i) => (
+                        <div
+                          key={i}
+                          className={`flex-1 rounded-sm transition-colors ${
+                            i < selectedJob.applicationCount 
+                              ? 'bg-blue-500' 
+                              : 'bg-zinc-200'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                    
+                    {selectedJob.applicationCount >= MAX_APPLICATIONS && (
+                      <p className="mt-2 text-sm font-bold text-red-500">
+                        Filled! No more applications accepted.
+                      </p>
+                    )}
+                  </div>
 
                   <div className="mt-6">
                     <h3 className="text-lg font-medium text-zinc-900 mb-2">
                       Description
                     </h3>
 
-                    <p className="text-zinc-700">
+                    <p className="text-zinc-700 whitespace-pre-wrap">
                       {selectedJob.job_summary ||
                         selectedJob.description ||
                         "No description available."}
@@ -153,29 +211,38 @@ export default function DiscoveryPage() {
                       <h3 className="text-lg font-medium text-zinc-900 mb-2">
                         Skills
                       </h3>
-
                       <p className="text-zinc-700">{selectedJob.job_skills}</p>
                     </div>
                   )}
 
-                  <div className="mt-6 flex gap-3">
-                    {selectedJob.job_link && (
-                      <a
-                        href={selectedJob.job_link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="rounded-lg bg-blue-600 px-6 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                  <div className="mt-8 flex flex-col gap-3 border-t border-zinc-100 pt-6">
+                    <div className="flex gap-3">
+                      <button
+                        onClick={handleApply}
+                        disabled={selectedJob.applicationCount >= MAX_APPLICATIONS || !hasResume || isApplying}
+                        className={`rounded-lg px-8 py-2 text-sm font-medium text-white transition-colors ${
+                          selectedJob.applicationCount >= MAX_APPLICATIONS || !hasResume
+                            ? "bg-zinc-400 cursor-not-allowed"
+                            : "bg-blue-600 hover:bg-blue-700"
+                        }`}
                       >
-                        View Job
-                      </a>
-                    )}
+                        {isApplying ? "Applying..." : selectedJob.applicationCount >= MAX_APPLICATIONS ? "Filled" : "Apply"}
+                      </button>
 
-                    <button
-                      onClick={() => setSelectedJobId(null)}
-                      className="rounded-lg border border-zinc-300 px-6 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
-                    >
-                      Back to Jobs
-                    </button>
+                      <button
+                        onClick={() => setSelectedJobId(null)}
+                        className="rounded-lg border border-zinc-300 px-6 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
+                      >
+                        Back to Jobs
+                      </button>
+                    </div>
+
+                    {/* Resume Warning Message */}
+                    {!hasResume && selectedJob.applicationCount < MAX_APPLICATIONS && (
+                      <p className="text-sm font-medium text-red-500 mt-1">
+                        * You must add a resume to your profile before applying.
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
