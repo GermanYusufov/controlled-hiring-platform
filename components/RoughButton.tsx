@@ -28,7 +28,6 @@ export default function RoughButton({
       color: annotationColor,
       strokeWidth: 2,
       padding: 4,
-      roughness: 0.5,
       animationDuration: 350,
     });
 

@@ -15,7 +15,6 @@ export default function FeaturesSection({ children }: { children: React.ReactNod
       color: "#18181b",
       strokeWidth: 2,
       padding: 12,
-      roughness: 0.5,
       animationDuration: 1000,
     });
 
