@@ -1,7 +1,7 @@
 "use server";
 
 import { cookies } from "next/headers";
-import { createClient } from "@/utils/supabase/server";
+import { createClient } from "@/backend/utils/supabase/server";
 
 export async function uploadResume(formData: FormData) {
   const cookieStore = await cookies();
