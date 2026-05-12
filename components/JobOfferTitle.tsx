@@ -25,7 +25,7 @@ export default function JobOfferTitle() {
   }, []);
 
   return (
-    <div ref={ref} className="flex justify-center">
+    <div ref={ref} className="flex justify-center w-full overflow-hidden">
       <Penflow
         text="Job Offer"
         fontUrl="/fonts/Caveat.ttf"

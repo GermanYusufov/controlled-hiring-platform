@@ -7,6 +7,14 @@ export default function TenAnimated() {
   const ref = useRef<HTMLDivElement>(null);
   const [playheadKey, setPlayheadKey] = useState(0);
   const triggered = useRef(false);
+  const [penSize, setPenSize] = useState(220);
+
+  useEffect(() => {
+    const updateSize = () => setPenSize(window.innerWidth < 640 ? 160 : 220);
+    updateSize();
+    window.addEventListener("resize", updateSize);
+    return () => window.removeEventListener("resize", updateSize);
+  }, []);
 
   useEffect(() => {
     const el = ref.current;
@@ -25,19 +33,17 @@ export default function TenAnimated() {
   }, []);
 
   return (
-    <div ref={ref} style={{ width: 500, overflow: "hidden", margin: "0 auto" }}>
-      <div style={{ transform: "translateX(20px)" }}>
-        <Penflow
-          text="10"
-          fontUrl="/fonts/Caveat.ttf"
-          quality="balanced"
-          seed="ten"
-          size={320}
-          animate={playheadKey > 0}
-          playheadKey={playheadKey}
-          autoReplay={false}
-        />
-      </div>
+    <div ref={ref} className="w-full max-w-xs sm:max-w-sm overflow-hidden mx-auto">
+      <Penflow
+        text="10"
+        fontUrl="/fonts/Caveat.ttf"
+        quality="balanced"
+        seed="ten"
+        size={penSize}
+        animate={playheadKey > 0}
+        playheadKey={playheadKey}
+        autoReplay={false}
+      />
     </div>
   );
 }
