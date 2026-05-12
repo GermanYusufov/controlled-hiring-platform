@@ -1,8 +1,8 @@
-// app/employer/jobs/[jobId]/JobManager.tsx
 "use client";
 
 import { useState } from "react";
 import { updateJobPosting, deleteJobPosting } from "./actions";
+import CandidateList from "./CandidateList"; // <-- IMPORT THE NEW COMPONENT
 
 export default function JobManager({ job, applicants }: { job: any, applicants: any[] }) {
     const [activeTab, setActiveTab] = useState<"applicants" | "edit">("applicants");
@@ -63,24 +63,8 @@ export default function JobManager({ job, applicants }: { job: any, applicants: 
                             No applicants yet. Check back soon!
                         </div>
                     ) : (
-                        applicants.map((app) => (
-                            <div key={app.id} className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm flex justify-between items-center">
-                                <div>
-                                    {/* FIXED: Added ?. to safely handle missing profiles */}
-                                    <h3 className="font-semibold text-zinc-900">{app.applicant?.name || "Unknown Applicant"}</h3>
-                                    <p className="text-sm text-zinc-500">Role: {app.applicant?.target_role || "Not specified"}</p>
-
-                                    {app.applicant?.resume_url && (
-                                        <a href={app.applicant.resume_url} target="_blank" rel="noreferrer" className="text-xs text-blue-500 hover:underline mt-1 inline-block">
-                                            View Resume
-                                        </a>
-                                    )}
-                                </div>
-                                <span className="bg-zinc-100 text-zinc-600 px-3 py-1 rounded-full text-xs font-medium uppercase">
-                                    {app.status}
-                                </span>
-                            </div>
-                        ))
+                        /* FIXED: Swapped out the static map for your interactive CandidateList */
+                        <CandidateList candidates={applicants} jobId={job.id} />
                     )}
                 </div>
             )}
