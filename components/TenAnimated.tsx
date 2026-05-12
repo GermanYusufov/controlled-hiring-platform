@@ -30,7 +30,7 @@ export default function TenAnimated() {
         <Penflow
           text="10"
           fontUrl="/fonts/Caveat.ttf"
-          quality="high"
+          quality="balanced"
           seed="ten"
           size={320}
           animate={playheadKey > 0}
