@@ -34,6 +34,7 @@ export async function submitRoleSelection(formData: FormData) {
       .upsert({
         user_id: user.id,
         company_name: companyName,
+        contact_email: user.email,
       }, { onConflict: 'user_id' });
 
     if (companyError) return { error: companyError.message };
