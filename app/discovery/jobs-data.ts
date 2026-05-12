@@ -4,7 +4,7 @@ export async function getJobs() {
   const supabase = createClient();
 
   const { data, error } = await supabase
-    .from("job_postings")
+    .from("JobPosting")
     .select("*")
     .limit(50);
 
