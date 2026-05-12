@@ -123,9 +123,9 @@ export default async function DashboardPage() {
 
   const { data: { user }, error: userError } = await supabase.auth.getUser();
 
-  // Boot them to signup if not logged in
+  // Boot them to login if not logged in
   if (userError || !user) {
-    redirect('/signup');
+    redirect('/login');
   }
 
   // Check for profiles
