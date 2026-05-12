@@ -98,7 +98,7 @@ export default function EmployerDashboardPage() {
             <div className="flex items-center justify-between">
               <span className="text-2xl">&#x1F4BC;</span>
               <span className="text-xs text-zinc-400 group-hover:text-zinc-700 transition-colors">
-                {MOCK_JOBS.length} open roles &#x2192;
+                {MOCK_JOBS.length} open roles →
               </span>
             </div>
             <h2 className="text-lg font-semibold text-zinc-900">Manage Job Postings</h2>
@@ -114,7 +114,7 @@ export default function EmployerDashboardPage() {
             <div className="flex items-center justify-between">
               <span className="text-2xl">&#x1F4CB;</span>
               <span className="text-xs text-zinc-400 group-hover:text-zinc-700 transition-colors">
-                {totalApplicants} applicants &#x2192;
+                {totalApplicants} applicants →
               </span>
             </div>
             <h2 className="text-lg font-semibold text-zinc-900">All Applications</h2>

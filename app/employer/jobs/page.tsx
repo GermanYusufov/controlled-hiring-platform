@@ -28,21 +28,29 @@ export default function EmployerJobsPage() {
     <div className="min-h-screen bg-zinc-50 px-4 py-12">
       <div className="mx-auto max-w-4xl">
         {/* Header */}
-        <div className="mb-8 flex items-start justify-between">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight text-zinc-900">
-              Job listings
-            </h1>
-            <p className="mt-1 text-sm text-zinc-500">
-              {MOCK_JOBS.length} open roles · {totalApplicants} total applicants
-            </p>
-          </div>
-          <button
-            type="button"
-            className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700 transition-colors"
+        <div className="mb-8">
+          <a
+            href="/employer/dashboard"
+            className="mb-4 inline-flex items-center gap-1 text-sm text-zinc-500 hover:text-zinc-900 transition-colors"
           >
-            + Post a role
-          </button>
+            ← Back to dashboard
+          </a>
+          <div className="flex items-start justify-between">
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight text-zinc-900">
+                Job listings
+              </h1>
+              <p className="mt-1 text-sm text-zinc-500">
+                {MOCK_JOBS.length} open roles · {totalApplicants} total applicants
+              </p>
+            </div>
+            <button
+              type="button"
+              className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700 transition-colors"
+            >
+              + Post a role
+            </button>
+          </div>
         </div>
 
         {/* Job cards */}

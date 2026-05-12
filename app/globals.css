@@ -5,6 +5,17 @@
   --foreground: #171717;
 }
 
+@keyframes swayNet {
+  0%   { transform: rotate(-5deg); }
+  50%  { transform: rotate(5deg); }
+  100% { transform: rotate(-5deg); }
+}
+
+.animate-sway-net {
+  animation: swayNet 3s ease-in-out infinite;
+  transform-origin: 50% 85%;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

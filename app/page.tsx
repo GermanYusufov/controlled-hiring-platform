@@ -1,27 +1,12 @@
 import HeroHeading from "@/components/HeroHeading";
+import HandwritingTitleClient from "@/components/HandwritingTitleClient";
+import TenAnimatedClient from "@/components/TenAnimatedClient";
 import FeaturesSection from "@/components/FeaturesSection";
 import RoughButton from "@/components/RoughButton";
 
 export default function Home() {
   return (
     <div className="flex flex-col min-h-screen bg-white font-sans">
-
-      {/* Nav — sticky with blur */}
-      <header className="sticky top-0 z-50 border-b border-zinc-100 bg-white/80 backdrop-blur-md">
-        <div className="mx-auto max-w-5xl flex items-center justify-between px-6 py-4">
-          <span className="text-lg font-semibold tracking-tight text-zinc-900">
-            HireControl
-          </span>
-          <nav className="flex items-center gap-4">
-            <a href="/login" className="text-sm text-zinc-600 hover:text-zinc-900 transition-colors">
-              Log in
-            </a>
-            <a href="/signup" className="text-sm font-medium rounded-lg bg-zinc-900 px-4 py-2 text-white hover:bg-zinc-700 transition-colors">
-              Get started
-            </a>
-          </nav>
-        </div>
-      </header>
 
       <main className="flex-1">
 
@@ -31,8 +16,9 @@ export default function Home() {
             <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
             Now in public beta
           </span>
+          <HandwritingTitleClient />
           <HeroHeading />
-          <p className="mx-auto mt-6 max-w-2xl text-lg text-zinc-500">
+          <p className="mx-auto mt-6 max-w-2xl text-xl text-zinc-500 font-[family-name:var(--font-caveat)]">
             A structured hiring platform that reduces bias, standardises
             evaluations, and gives your team a clear, auditable process from
             application to offer.
@@ -70,6 +56,24 @@ export default function Home() {
                 </div>
               ))}
             </div>
+          </div>
+        </section>
+
+        {/* Cover image */}
+        <section className="mx-auto max-w-5xl px-6 py-12">
+          <div className="flex flex-col items-center justify-center py-16 gap-0">
+            <object
+              data="/Logo_NONAME_vector.svg"
+              type="image/svg+xml"
+              aria-label="Sachok Job"
+              className="w-full max-w-lg"
+            />
+            <object
+              data="/Job Offer.svg"
+              type="image/svg+xml"
+              aria-label="Job Offer"
+              className="w-full max-w-xs -mt-4"
+            />
           </div>
         </section>
 
@@ -188,6 +192,29 @@ export default function Home() {
           </div>
         </section>
 
+        {/* 10 applicants cap */}
+        <section className="py-24 border-t border-zinc-100">
+          <div className="mx-auto max-w-3xl px-6 text-center">
+            {/* Animated number */}
+            <div className="flex flex-col items-center">
+              <TenAnimatedClient />
+              <span className="text-sm font-medium uppercase tracking-widest text-zinc-400 mt-2">max applicants</span>
+            </div>
+            {/* Text */}
+            <div className="mt-8">
+              <h2 className="text-3xl font-bold tracking-tight text-zinc-900">
+                Quality over quantity.
+              </h2>
+              <p className="mt-4 text-3xl font-[family-name:var(--font-caveat)] text-zinc-500">
+                Every role on Sachok Job is visible to job seekers — but only the first 10 to apply get through. Knowing spots fill fast, candidates put real effort in: sharper CVs, considered cover letters, and applications only for roles they genuinely want.
+              </p>
+              <p className="mt-3 text-3xl font-[family-name:var(--font-caveat)] text-zinc-500">
+                You get a shortlist worth reading — not a pile to filter.
+              </p>
+            </div>
+          </div>
+        </section>
+
         {/* CTA */}
         <section className="py-28">
           <div className="mx-auto max-w-2xl px-6 text-center">
@@ -210,13 +237,13 @@ export default function Home() {
       {/* Footer */}
       <footer className="border-t border-zinc-100 py-10">
         <div className="mx-auto max-w-5xl px-6 flex flex-col items-center gap-4 sm:flex-row sm:justify-between text-sm text-zinc-400">
-          <span className="font-medium text-zinc-900">HireControl</span>
+          <span className="font-medium text-zinc-900">Sachok Job</span>
           <div className="flex items-center gap-6">
             <a href="/signup" className="hover:text-zinc-700 transition-colors">Sign up</a>
             <a href="/login" className="hover:text-zinc-700 transition-colors">Log in</a>
             <a href="/discovery" className="hover:text-zinc-700 transition-colors">Browse jobs</a>
           </div>
-          <span>&copy; {new Date().getFullYear()} HireControl. All rights reserved.</span>
+          <span>&copy; {new Date().getFullYear()} Sachok Job. All rights reserved.</span>
         </div>
       </footer>
 
