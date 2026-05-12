@@ -145,6 +145,11 @@ export default async function DashboardPage() {
   if (!applicantProfile && !companyProfile) {
     redirect('/onboarding');
   }
+
+  // Employers have their own dashboard
+  if (companyProfile && !applicantProfile) {
+    redirect('/employer/dashboard');
+  }
   // --- GATEKEEPER END ---
 
   // --- 2. FETCH DATA ---

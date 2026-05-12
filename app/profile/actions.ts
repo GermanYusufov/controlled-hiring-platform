@@ -1,6 +1,7 @@
 "use server";
 
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import { createClient } from "@/backend/utils/supabase/server";
 
 // 1. Fetch Profile Data (Used to pre-fill the form on page load)
@@ -70,7 +71,7 @@ export async function updateCompanyProfile(formData: FormData) {
     .eq("user_id", user.id);
 
   if (error) return { error: error.message };
-  return { success: true };
+  redirect("/employer/dashboard");
 }
 
 // 3. Update Applicant Profile (With Resume Upload & Normalized Skills)

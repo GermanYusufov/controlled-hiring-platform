@@ -295,7 +295,7 @@ function EmployerForm({ initialData }: { initialData: any }) {
     <div className="min-h-screen bg-zinc-50 px-4 py-12">
       <div className="mx-auto max-w-2xl">
         <div className="mb-8">
-          <a href="/dashboard" className="mb-6 inline-flex items-center gap-1 text-sm text-zinc-400 hover:text-zinc-700 transition-colors">
+          <a href="/employer/dashboard" className="mb-6 inline-flex items-center gap-1 text-sm text-zinc-400 hover:text-zinc-700 transition-colors">
             ← Back
           </a>
           <h1 className="text-2xl font-bold tracking-tight text-zinc-900">Company profile</h1>
