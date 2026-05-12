@@ -1,9 +1,9 @@
+// app/discovery/jobs-data.ts
 import { createClient } from "@/backend/utils/supabase/client";
 
 export async function getDiscoveryData() {
   const supabase = createClient();
 
-  // 1. Get current user and profile to check for resume
   const { data: { user } } = await supabase.auth.getUser();
   let hasResume = false;
   let applicantId = null;
@@ -21,13 +21,14 @@ export async function getDiscoveryData() {
     }
   }
 
-  // 2. Fetch jobs along with their current application count
+  // FIXED: Added .order() so the newest jobs are always fetched
   const { data, error } = await supabase
     .from("JobPosting")
     .select(`
       *,
       applications:Application(count)
     `)
+    .order("created_at", { ascending: false }) 
     .limit(50);
 
   if (error) {
@@ -35,7 +36,6 @@ export async function getDiscoveryData() {
     return { jobs: [], hasResume, applicantId };
   }
 
-  // 3. Format the data to easily access the count
   const formattedJobs = data.map((job: any) => ({
     ...job,
     applicationCount: job.applications?.[0]?.count || 0
@@ -54,14 +54,8 @@ export async function applyToJob(jobId: string, applicantId: string) {
     });
 
   if (error) {
-    if (error.message.includes('ALREADY_APPLIED')) {
-      return { error: 'You have already applied for this job.' };
-    }
-    if (error.message.includes('JOB_FILLED')) {
-      return { error: 'Sorry, this job has reached its application limit.' };
-    }
-    
-    console.error("Database apply error:", error);
+    if (error.message.includes('ALREADY_APPLIED')) return { error: 'You have already applied for this job.' };
+    if (error.message.includes('JOB_FILLED')) return { error: 'Sorry, this job has reached its application limit.' };
     return { error: 'Something went wrong. Please try again.' };
   }
 
