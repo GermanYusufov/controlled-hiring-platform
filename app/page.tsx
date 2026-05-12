@@ -3,6 +3,7 @@ import HandwritingTitleClient from "@/components/HandwritingTitleClient";
 import TenAnimatedClient from "@/components/TenAnimatedClient";
 import FeaturesSection from "@/components/FeaturesSection";
 import RoughButton from "@/components/RoughButton";
+import JobOfferTitleClient from "@/components/JobOfferTitleClient";
 
 export default function Home() {
   return (
@@ -68,12 +69,7 @@ export default function Home() {
               aria-label="Sachok Job"
               className="w-full max-w-lg"
             />
-            <object
-              data="/Job Offer.svg"
-              type="image/svg+xml"
-              aria-label="Job Offer"
-              className="w-full max-w-xs -mt-4"
-            />
+            <JobOfferTitleClient />
           </div>
         </section>
 
