@@ -1,4 +1,4 @@
-import { createClient } from "@/utils/supabase/client";
+import { createClient } from "@/backend/utils/supabase/client";
 
 export async function getJobs() {
   const supabase = createClient();

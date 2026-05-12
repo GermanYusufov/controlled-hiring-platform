@@ -1,7 +1,7 @@
 "use server";
 
 import { cookies } from "next/headers";
-import { createClient } from "@/utils/supabase/server";
+import { createClient } from "@/backend/utils/supabase/server";
 
 // 1. Fetch Profile Data (Used to pre-fill the form on page load)
 export async function getProfileData() {
