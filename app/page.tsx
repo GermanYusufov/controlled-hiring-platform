@@ -61,8 +61,8 @@ export default function Home() {
         </section>
 
         {/* Cover image */}
-        <section className="mx-auto max-w-5xl px-6 py-12">
-          <div className="flex flex-col items-center justify-center py-16 gap-0">
+        <section className="mx-auto max-w-5xl px-4 sm:px-6 py-8 sm:py-12 overflow-hidden">
+          <div className="flex flex-col items-center justify-center py-8 sm:py-16 gap-0 w-full">
             <object
               data="/Logo_NONAME_vector.svg"
               type="image/svg+xml"
